@@ -12,6 +12,9 @@ reservadas = ['algoritmo', 'principal', 'variaveis', 'constantes', 'registro', '
 delimitadores = [ ';', ',', '.', '(', ')', '[', ']', '{', '}' ]
 
 
+def salva_lexema(lexema, linha, tipo, lista):
+    lista.append({'linha': linha, 'tipo': tipo, 'valor': lexema})
+
 
 class LEX(Enum):
     INICIO = 0
@@ -42,41 +45,49 @@ linha_num = 0 # Número da linha analisada
 for linha in linhas:
     linha_num = linha_num + 1
     i = 0 # iterador da linha para fazer o fatiamento da string
-    while i <= len(linha)-1:
-        
+
+    while i <= len(linha)-1:    
         # ---------- Estado inicial da aplicação ---------- #
         if estado == LEX.INICIO: 
             lexema = '' # Reseta o lexema
             ## == Transição para cadeia == ## OOOOKKKKK
             if linha[i] == '"':
-                if i != len(linha)-1:# não é o final de linha
-                    lexema = lexema + linha[i] # Adiciono o caracter de inicio 
-                    estado = LEX.STRING # e vou pro prox estado
-                else: # Se for o final de linha
-                    lexema = lexema + linha[i]
-                    tokens.append(lexema)# salvo o caracter
-            ## == Transição para delimitadores == ##
+                lexema = lexema + linha[i] # Adiciono o caracter de inicio 
+                estado = LEX.STRING # e vou pro prox estado
+                # Para resolver o problema das linhas que só possuem um char
+                if(i==len(linha)-1):
+                    salva_lexema(lexema, linha_num, 'CADEIA', tokens)
+            ## == Transição para delimitadores == ## OOOOKKKKK
             elif linha[i] in delimitadores:
                 lexema = lexema + linha[i]
                 estado = LEX.DELIMITADOR
+                # Para resolver o problema das linhas que só possuem um char
+                if(i==len(linha)-1):
+                    salva_lexema(lexema, linha_num, 'DELIMITADOR', tokens)
             ## == Transição para operadores aritméticos == ##
             elif linha[i] in '+-*/':
                 lexema = lexema + linha[i]
                 estado = LEX.OPERADOR_ARITMETICO
+                # Para resolver o problema das linhas que só possuem um char
+                if(i==len(linha)-1):
+                    salva_lexema(lexema, linha_num, 'OPERADOR', tokens)
             ## == Transição para identificadores == ## OOOOKKKKK
             elif linha[i] in alfabeto:
                 lexema = lexema + linha[i]
-                estado = LEX.IDENTIFICADOR          
+                estado = LEX.IDENTIFICADOR        
+                # Para resolver o problema das linhas que só possuem um char
+                if(i==len(linha)-1):
+                    salva_lexema(lexema, linha_num, 'IDENTIFICADOR', tokens)
             i=i+1# Passo a linha
 
         # ---------- Estado para analise de STRINGS ---------- # OOOOKKKKK
         elif estado == LEX.STRING:
             # Se o caracter lido não for o fim da string, continue concatenando
-            if linha[i] != '"' and i != len(linha)-1: 
+            if linha[i] != '"' and i <= len(linha)-1: 
                 lexema = lexema + linha[i]
             else: # Se for o fim
                 lexema = lexema + linha[i]
-                tokens.append(lexema)
+                salva_lexema(lexema, linha_num, 'CADEIA', tokens)
                 estado = LEX.INICIO # Volta para posição inicial
             i=i+1# Passo a linha
 
@@ -105,7 +116,7 @@ for linha in linhas:
                 if lexema in reservadas:
                     estado = LEX.RESERVADO # Vai para o reservado
                 else:
-                    tokens.append(lexema)
+                    salva_lexema(lexema, linha_num, 'IDENTIFICADOR', tokens)
                     estado = LEX.INICIO # Vai para o inicio
                 continue
             i=i+1# Passo a linha
@@ -113,13 +124,13 @@ for linha in linhas:
         # ---------- Estado para analise de RESERVADOS ---------- # OOOOKKKKK
         elif estado == LEX.RESERVADO:
             # só serve para salvar na estrutura de palavra reservada
-            tokens.append(lexema + '_res')
+            salva_lexema(lexema, linha_num, 'RESERVADO', tokens)
             estado = LEX.INICIO
 
         # ---------- Estado para analise de DELIMITADORES ---------- # OOOOKKKKK
         elif estado == LEX.DELIMITADOR:
             # só serve para salvar na estrutura de palavra reservada
-            tokens.append(lexema + '_del')
+            salva_lexema(lexema, linha_num, 'DELIMITADOR', tokens)
             estado = LEX.INICIO
 
 
