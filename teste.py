@@ -83,7 +83,7 @@ for linha in linhas:
         # ---------- Estado para analise de STRINGS ---------- # OOOOKKKKK
         elif estado == LEX.STRING:
             # Se o caracter lido não for o fim da string, continue concatenando
-            if linha[i] != '"' and i <= len(linha)-1: 
+            if linha[i] != '"' and i != len(linha)-1: 
                 lexema = lexema + linha[i]
             else: # Se for o fim
                 lexema = lexema + linha[i]
