@@ -45,21 +45,6 @@ for numero_linha, linha in enumerate(linhas, start=1):
             if char == '"':
                 lexema += char  # Inicia o lexema com a aspa dupla, indicando o início de uma string
                 estado = LEX.STRING  # Muda o estado para STRING para capturar o restante da string
-            elif char in alfabeto or char == '_':  # Trata o sublinhado como parte do início de um identificador
-                lexema = char
-                estado = LEX.IDENTIFICADOR
-            elif estado == LEX.IDENTIFICADOR:
-                if char in alfabeto or char in digitos or char == '_':  # Permite sublinhados em qualquer parte do identificador
-                    lexema += char
-                else:
-                    # Finaliza o identificador e verifica se é uma palavra reservada
-                    if lexema in reservadas:
-                        salva_lexema(lexema, numero_linha, 'RESERVADO', tokens)
-                    else:
-                        salva_lexema(lexema, numero_linha, 'IDENTIFICADOR', tokens)
-                    lexema = ''
-                    estado = LEX.INICIO
-                    continue  # Reavalia o mesmo caractere no novo estado
             elif char in delimitadores:
                 # Se o caractere for um delimitador, salva imediatamente
                 salva_lexema(char, numero_linha, 'DELIMITADOR', tokens)
