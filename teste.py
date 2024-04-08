@@ -56,28 +56,28 @@ for linha in linhas:
                 estado = LEX.STRING # e vou pro prox estado
                 # Para resolver o problema das linhas que só possuem um char
                 if(i==len(linha)-1):
-                    salva_lexema(lexema, linha_num, 'CADEIA', tokens)
-            ## == Transição para delimitadores == ## OOOOKKKKK
+                    tokens.append(lexema)
+            ## == Transição para delimitadores == ##
             elif linha[i] in delimitadores:
                 lexema = lexema + linha[i]
                 estado = LEX.DELIMITADOR
                 # Para resolver o problema das linhas que só possuem um char
                 if(i==len(linha)-1):
-                    salva_lexema(lexema, linha_num, 'DELIMITADOR', tokens)
+                    tokens.append(lexema)
             ## == Transição para operadores aritméticos == ##
             elif linha[i] in '+-*/':
                 lexema = lexema + linha[i]
                 estado = LEX.OPERADOR_ARITMETICO
                 # Para resolver o problema das linhas que só possuem um char
                 if(i==len(linha)-1):
-                    salva_lexema(lexema, linha_num, 'OPERADOR', tokens)
+                    tokens.append(lexema)
             ## == Transição para identificadores == ## OOOOKKKKK
             elif linha[i] in alfabeto:
                 lexema = lexema + linha[i]
                 estado = LEX.IDENTIFICADOR        
                 # Para resolver o problema das linhas que só possuem um char
                 if(i==len(linha)-1):
-                    salva_lexema(lexema, linha_num, 'IDENTIFICADOR', tokens)
+                    tokens.append(lexema)  
             i=i+1# Passo a linha
 
         # ---------- Estado para analise de STRINGS ---------- # OOOOKKKKK
@@ -87,7 +87,7 @@ for linha in linhas:
                 lexema = lexema + linha[i]
             else: # Se for o fim
                 lexema = lexema + linha[i]
-                salva_lexema(lexema, linha_num, 'CADEIA', tokens)
+                tokens.append(lexema)
                 estado = LEX.INICIO # Volta para posição inicial
             i=i+1# Passo a linha
 
@@ -111,12 +111,19 @@ for linha in linhas:
             # Se for letra, num ou underline e não for o final da linha
             if (((linha[i] in alfabeto) or (linha[i] in digitos) or (linha[i]=='_'))  and i != len(linha)-1):
                 lexema = lexema + linha[i]
+            elif (((linha[i] in alfabeto) or (linha[i] in digitos) or (linha[i]=='_'))  and i == len(linha)-1):
+                lexema = lexema + linha[i]
+                if lexema in reservadas:
+                    estado = LEX.RESERVADO # Vai para o reservado
+                else:
+                    tokens.append(lexema)
+                    estado = LEX.INICIO # Vai para o inicio
             else: # Se não for mais letra, num ou underline ou ainda se for o final da linha
                 ## !! DEVO VERIFICAR SE É PALAVRA RESERVADA ANTES DE SALVAR NA ESTRUTURA ##
                 if lexema in reservadas:
                     estado = LEX.RESERVADO # Vai para o reservado
                 else:
-                    salva_lexema(lexema, linha_num, 'IDENTIFICADOR', tokens)
+                    tokens.append(lexema)
                     estado = LEX.INICIO # Vai para o inicio
                 continue
             i=i+1# Passo a linha
@@ -124,13 +131,13 @@ for linha in linhas:
         # ---------- Estado para analise de RESERVADOS ---------- # OOOOKKKKK
         elif estado == LEX.RESERVADO:
             # só serve para salvar na estrutura de palavra reservada
-            salva_lexema(lexema, linha_num, 'RESERVADO', tokens)
+            tokens.append(lexema + '_res')
             estado = LEX.INICIO
 
         # ---------- Estado para analise de DELIMITADORES ---------- # OOOOKKKKK
         elif estado == LEX.DELIMITADOR:
             # só serve para salvar na estrutura de palavra reservada
-            salva_lexema(lexema, linha_num, 'DELIMITADOR', tokens)
+            tokens.append(lexema + '_del')
             estado = LEX.INICIO
 
 
