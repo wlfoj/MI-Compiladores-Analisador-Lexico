@@ -43,6 +43,8 @@ tokens = []
 
 linha_num = 0 # Número da linha analisada
 for linha in linhas:
+    linha = linha.replace('\n', '')
+
     linha_num = linha_num + 1
     i = 0 # iterador da linha para fazer o fatiamento da string
 
@@ -109,30 +111,25 @@ for linha in linhas:
         # ---------- Estado para analise de IDENTIFICADORES ---------- #  OOOOKKKKK
         elif estado == LEX.IDENTIFICADOR:
             # Se for letra, num ou underline e não for o final da linha
-            if (((linha[i] in alfabeto) or (linha[i] in digitos) or (linha[i]=='_'))  and i != len(linha)-1):
+            if (((linha[i] in alfabeto) or (linha[i] in digitos) or (linha[i]=='_'))):
                 lexema = lexema + linha[i]
-            elif (((linha[i] in alfabeto) or (linha[i] in digitos) or (linha[i]=='_'))  and i == len(linha)-1):
-                lexema = lexema + linha[i]
-                if lexema in reservadas:
-                    estado = LEX.RESERVADO # Vai para o reservado
-                else:
-                    tokens.append(lexema)
-                    estado = LEX.INICIO # Vai para o inicio
+                if i == len(linha)-1:
+                    if lexema in reservadas:
+                        tokens.append(lexema + '_res')
+                        estado = LEX.INICIO
+                    else:
+                        tokens.append(lexema)
+                        estado = LEX.INICIO # Vai para o inicio
             else: # Se não for mais letra, num ou underline ou ainda se for o final da linha
                 ## !! DEVO VERIFICAR SE É PALAVRA RESERVADA ANTES DE SALVAR NA ESTRUTURA ##
                 if lexema in reservadas:
-                    estado = LEX.RESERVADO # Vai para o reservado
+                    tokens.append(lexema + '_res')
+                    estado = LEX.INICIO
                 else:
                     tokens.append(lexema)
                     estado = LEX.INICIO # Vai para o inicio
                 continue
             i=i+1# Passo a linha
-
-        # ---------- Estado para analise de RESERVADOS ---------- # OOOOKKKKK
-        elif estado == LEX.RESERVADO:
-            # só serve para salvar na estrutura de palavra reservada
-            tokens.append(lexema + '_res')
-            estado = LEX.INICIO
 
         # ---------- Estado para analise de DELIMITADORES ---------- # OOOOKKKKK
         elif estado == LEX.DELIMITADOR:
