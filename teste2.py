@@ -34,6 +34,8 @@ for numero_linha, linha in enumerate(linhas, start=1):
     i = 0  # Inicialização do iterador da linha
     estado = LEX.INICIO
     lexema = ''
+    ponto_encontrado = False
+    sinal_negativo = False
     while i < len(linha):
         char = linha[i]  # Pega o caractere atual na posição i da linha
         # Verifica o estado atual do autômato
@@ -45,6 +47,13 @@ for numero_linha, linha in enumerate(linhas, start=1):
             elif char in delimitadores:
                 # Se o caractere for um delimitador, salva imediatamente
                 salva_lexema(char, numero_linha, 'DELIMITADOR', tokens)
+            elif char == '-' and i + 1 < len(linha) and (linha[i + 1] in digitos or linha[i + 1] == '.'):
+                lexema += char  # Inclui o sinal negativo no lexema
+                if linha[i + 1] == '.':
+                    i += 1  # Avança o índice se o próximo caractere for um ponto decimal
+                    lexema += linha[i]  # Adiciona o ponto decimal ao lexema
+                    ponto_encontrado = True
+                estado = LEX.NUMERO
             elif char in '+-':
                 lexema += char  # Inicia o lexema com o operador
                 # Verifica se o próximo caractere forma um operador composto (++ ou --)
@@ -58,11 +67,14 @@ for numero_linha, linha in enumerate(linhas, start=1):
                 # Se o caractere for * ou /, salva como operador aritmético
                 salva_lexema(char, numero_linha, 'OPERADOR_ARITMETICO', tokens)
             elif char in alfabeto:
-                lexema = char  # Inicia o lexema com o caractere alfabético
-                estado = LEX.IDENTIFICADOR  # Muda o estado para IDENTIFICADOR
-            elif char in digitos:
-                lexema = char  # Inicia o lexema com o dígito
-                estado = LEX.NUMERO  # Muda o estado para NÚMERO
+                lexema = char  # Inicia um novo lexema com o caractere alfabético atual, possivelmente o início de um identificador.
+                estado = LEX.IDENTIFICADOR  # Muda o estado para IDENTIFICADOR, preparando-se para capturar um identificador completo.
+
+            elif char in digitos or char == '.':
+                lexema = char  # Inicia um novo lexema com o caractere numérico ou ponto decimal atual, possivelmente o início de um número.
+                estado = LEX.NUMERO  # Muda o estado para NUMERO, indicando que estamos começando a captura de um número.
+                if char == '.':
+                    ponto_encontrado = True  # Se o caractere inicial é um ponto, marca que um ponto foi encontrado para este número.
             elif char in "=!<>":
                 lexema = char  # Inicia o lexema com o operador relacional
                 estado = LEX.OPERADOR_RELACIONAL  # Muda o estado para OPERADOR_RELACIONAL
@@ -110,12 +122,16 @@ for numero_linha, linha in enumerate(linhas, start=1):
                 continue  # Reavalia o mesmo caractere no novo estado
         elif estado == LEX.NUMERO:
             if char in digitos:
-                lexema += char  # Continua formando o número
+                lexema += char  # Se o caractere atual é um dígito, adiciona ao lexema atual.
+            elif char == '.' and not ponto_encontrado:
+                lexema += char  # Se o caractere é um ponto e ainda não encontramos um ponto neste número, adiciona ao lexema.
+                ponto_encontrado = True  # Marca que encontramos um ponto, evitando mais pontos neste número.
             else:
-                salva_lexema(lexema, numero_linha, 'NUMERO', tokens)
-                lexema = ''  # Reseta o lexema
-                estado = LEX.INICIO  # Retorna ao estado INÍCIO
-                continue  # Reavalia o mesmo caractere no novo estado
+                salva_lexema(lexema, numero_linha, 'NUMERO', tokens)  # Salva o lexema atual como um número.
+                lexema = ''  # Reinicia o lexema para começar a captura do próximo token.
+                ponto_encontrado = False  # Reinicia a flag de ponto encontrado para o próximo número.
+                estado = LEX.INICIO  # Volta para o estado inicial para processar o próximo caractere.
+                continue  # Reavalia o caractere atual no estado inicial, pois pode não fazer parte do número (ex: separador).
         i += 1  # Avança para o próximo caractere
     # Verifica se um lexema foi capturado mas não salvo devido ao final da linha
     if lexema:
