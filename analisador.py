@@ -17,6 +17,10 @@ def e_cadeia_valida(caracter):
     valor_inteiro = ord(caracter) # Obtem o valor inteiro de base 10 referente ao caracter ASCII
     return (valor_inteiro >= 32 and valor_inteiro <=126) and (valor_inteiro != 34)
 
+# Função que retorna 1 se o caracter for valido para um identificado
+def e_ide_valido(char):
+    return (char in alfabeto) or (char in digitos) or (char == '_')
+
 # Retorna 1 se char for delimitador
 def e_delimitador(char):
     return char in " +-*/><=!&|" or char in delimitadores
@@ -56,7 +60,6 @@ class LEX(Enum):
     OPERADOR_RELACIONAL = 9
 
 
-estado = LEX.INICIO
 
 
 with open("files/teste.txt", "r") as a:
@@ -64,9 +67,10 @@ with open("files/teste.txt", "r") as a:
 #print("Tamanho da linha", len(linha))
 
 
-
+estado = LEX.INICIO
 lexema = ''
 tokens = []
+erro = False
 
 linha_num = 0 # Número da linha analisada
 
@@ -77,8 +81,10 @@ for linha in linhas:
     i = 0 # iterador da linha para fazer o fatiamento da string
     final_pos_linha = len(linha)-1
 
+    # Não atualizo as infos, pois posso estar vindo de um comentário de bloco mal formado
     if estado != LEX.COMENTARIO:
         lexema = '' # não resetar se for um comentário
+        erro = False
 
     while i <= final_pos_linha:  
         char = linha[i]
@@ -88,6 +94,7 @@ for linha in linhas:
             # ---------- Estado inicial da aplicação ---------- #
             case LEX.INICIO:
                 lexema = '' # Reseta o lexema
+                erro = False
                 ## == Ignora espaços == ## OOOOKKKK
                 if char == " ":
                     pass
@@ -118,6 +125,7 @@ for linha in linhas:
                     estado = LEX.IDENTIFICADOR        
                 ## == PARA TOKENS MAL FORMADOS == ##
                 else:
+                    erro = True 
                     lexema = lexema + char
                     tokens.append(lexema) 
                 i=i+1# Passo a linha
@@ -129,6 +137,9 @@ for linha in linhas:
                 # Se o caracter lido não for o fim da string, continue concatenando
                 if char != '"': 
                     lexema = lexema + char
+                    # Se tiver algum caracter fora dos permitidos, sinalizo o erro
+                    if not e_cadeia_valida(char):
+                        erro = True
                 else: # Se for o fim
                     lexema = lexema + char
                     tokens.append(lexema)
@@ -150,6 +161,7 @@ for linha in linhas:
                     tokens.append(lexema)
                     estado = LEX.INICIO # Volta para posição inicial
         
+
             # ---------- Estado para analise de operador logico ---------- #  OOOKKKKK
             case LEX.OPERADOR_LOGICO:
                 # Se for um operador Relacional, transfere a responsabilidade
@@ -164,6 +176,9 @@ for linha in linhas:
                     i=i+1
                 # Se for o ! ou um lógico mal formado
                 else:
+                    # Se for mal formado
+                    if lexema == "&" or lexema == "|":
+                        erro = True
                     tokens.append(lexema)
                     estado = LEX.INICIO # Volta para posição inicial
 
@@ -191,6 +206,9 @@ for linha in linhas:
             case LEX.IDENTIFICADOR:
                 # Se for letra, num ou underline e não for o final da linha
                 if (not e_delimitador(char)):
+                    # Se tiver algum caracter fora dos permitidos, sinalizo o erro
+                    if not e_ide_valido(char):
+                        erro = True
                     lexema = lexema + char
                 else: # Se não for mais letra, num ou underline ou ainda se for o final da linha
                     tokens.append(lexema)
@@ -206,6 +224,7 @@ for linha in linhas:
                 i=i+1# Passo a linha
 
     # Se o lexema que estiver aqui for de algum estado incompleto
+    ## PPENSAR QUANDO TIVER O COMENTÁRIO
     if lexema and estado != LEX.INICIO:
         tokens.append(lexema)
         # Lembrar de ver a lógica para o caso de 
