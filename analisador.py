@@ -153,7 +153,9 @@ for linha in linhas:
                     estado = STATE.COMENTARIO_LINHA
                     continue
                 elif lexema == "/" and char == "*":
+                    lexema = lexema + char # Eestou salvando pq posso precisar usar para comentario mal formado
                     estado = STATE.COMENTARIO_BLOCO
+                    i=i+1
                     continue
                 # Se for um lógico duplo
                 elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
@@ -169,8 +171,18 @@ for linha in linhas:
                     tokens.append(lexema)
                     estado = STATE.INICIO # Volta para posição inicial
         
+
+        
             case STATE.COMENTARIO_LINHA:
                 i=i+1
+            case STATE.COMENTARIO_BLOCO:
+                lexema = lexema + char 
+                if (lexema[-2:] == "*/"):
+                    estado = STATE.INICIO # Ignora tudo oq fez até aqui
+                # LEMBRAR DE INCLUIR O \n QUANDO CHEGAR NO FINAL DA LINHA E N TIVER FECHADO O COMENTARIO
+                i=i+1
+
+
 
             # ---------- Estado para analise de operador logico ---------- #  OOOKKKKK
             case STATE.OPERADOR_LOGICO:
@@ -238,10 +250,21 @@ for linha in linhas:
     if lexema and estado != STATE.INICIO:
         if estado == STATE.COMENTARIO_LINHA:
             estado = STATE.INICIO
+        elif estado == STATE.COMENTARIO_BLOCO:
+            lexema = lexema + "\n"
         else:
             tokens.append(lexema)
             # Lembrar de ver a lógica para o caso de 
             estado = STATE.INICIO
+
+# para tratar o comentário de bloco mal formado
+if lexema and estado==STATE.COMENTARIO_BLOCO:
+    tokens.append(lexema)
+
+
+
+
+
 
 print(tokens)
 

@@ -2,5 +2,5 @@ pedro#
 p@luo
 #pedro
 abc_abc//<&kaka
-//pedor,jubi;
-//"dsnidç
+/*pedor,jubi; */
+"dsnidç
