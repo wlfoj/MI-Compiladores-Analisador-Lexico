@@ -12,10 +12,14 @@ reservadas = ['algoritmo', 'principal', 'variaveis', 'constantes', 'registro', '
 
 delimitadores = [ ';', ',', '.', '(', ')', '[', ']', '{', '}' ]
 
-# Função apra validar a cadeia
+# Função para validar a cadeia ou identificador. Ver se o caracter é um simbolo valido
 def e_cadeia_valida(caracter):
-    valor_inteiro = ord(caracter)
+    valor_inteiro = ord(caracter) # Obtem o valor inteiro de base 10 referente ao caracter ASCII
     return (valor_inteiro >= 32 and valor_inteiro <=126) and (valor_inteiro != 34)
+
+# Retorna 1 se char for delimitador
+def e_delimitador(char):
+    return char in " +-*/><=!&|" or char in delimitadores
 
 def salva_lexema(lexema, linha, tipo, lista):
     lista.append({'linha': linha, 'tipo': tipo, 'valor': lexema})
@@ -186,7 +190,7 @@ for linha in linhas:
             # ---------- Estado para analise de IDENTIFICADORES ---------- #  OOOOKKKKK
             case LEX.IDENTIFICADOR:
                 # Se for letra, num ou underline e não for o final da linha
-                if (char not in " +-*/><=!&|"):
+                if (not e_delimitador(char)):
                     lexema = lexema + char
                 else: # Se não for mais letra, num ou underline ou ainda se for o final da linha
                     tokens.append(lexema)
