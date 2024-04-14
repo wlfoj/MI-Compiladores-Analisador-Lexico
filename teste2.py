@@ -88,6 +88,8 @@ for numero_linha, linha in enumerate(linhas, start=1):
             else:
                 if not char.isspace():
                     salva_lexema(char, numero_linha, 'TMF', tokens)
+
+                    
         elif estado == LEX.OPERADOR_LOGICO:
             if (lexema == '&' and char == '&') or (lexema == '|' and char == '|'):
                 lexema += char  # Completa o operador lógico (&& ou ||)
