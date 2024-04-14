@@ -186,7 +186,7 @@ for linha in linhas:
             # ---------- Estado para analise de IDENTIFICADORES ---------- #  OOOOKKKKK
             case LEX.IDENTIFICADOR:
                 # Se for letra, num ou underline e não for o final da linha
-                if (((char in alfabeto) or (char in digitos) or (char=='_'))):
+                if (char not in " +-*/><=!&|"):
                     lexema = lexema + char
                 else: # Se não for mais letra, num ou underline ou ainda se for o final da linha
                     tokens.append(lexema)
