@@ -47,10 +47,11 @@ class TOKENS_TYPE (Enum):
 
 
 # Estados
-class LEX(Enum):
+class STATE(Enum):
     INICIO = 0
     STRING = 1 # OK
-    COMENTARIO = 2
+    COMENTARIO_LINHA = 2
+    COMENTARIO_BLOCO = 20
     IDENTIFICADOR = 3 # OK +-
     DELIMITADOR = 4 
     NUMERO = 5 
@@ -61,13 +62,12 @@ class LEX(Enum):
 
 
 
-
 with open("files/teste.txt", "r") as a:
     linhas = a.readlines()
 #print("Tamanho da linha", len(linha))
 
 
-estado = LEX.INICIO
+estado = STATE.INICIO
 lexema = ''
 tokens = []
 erro = False
@@ -82,7 +82,7 @@ for linha in linhas:
     final_pos_linha = len(linha)-1
 
     # Não atualizo as infos, pois posso estar vindo de um comentário de bloco mal formado
-    if estado != LEX.COMENTARIO:
+    if estado != STATE.COMENTARIO_BLOCO:
         lexema = '' # não resetar se for um comentário
         erro = False
 
@@ -92,7 +92,7 @@ for linha in linhas:
 
         match estado:
             # ---------- Estado inicial da aplicação ---------- #
-            case LEX.INICIO:
+            case STATE.INICIO:
                 lexema = '' # Reseta o lexema
                 erro = False
                 ## == Ignora espaços == ## OOOOKKKK
@@ -101,29 +101,29 @@ for linha in linhas:
                 ## == Transição para cadeia == ## OOOOKKKKK
                 elif char == '"':
                     lexema = lexema + char # Adiciono o caracter de inicio 
-                    estado = LEX.STRING # e vou pro prox estado
+                    estado = STATE.STRING # e vou pro prox estado
                 ## == Transição para delimitadores == ## OOOOKKKKK
                 elif char in delimitadores:
                     lexema = lexema + char
-                    estado = LEX.DELIMITADOR
+                    estado = STATE.DELIMITADOR
                     continue
-                ## == Transição para operadores aritméticos == ##
+                ## == Transição para operadores aritméticos == ## OOOOKKKKK
                 elif char in '+-*/':
                     lexema = lexema + char
-                    estado = LEX.OPERADOR_ARITMETICO
+                    estado = STATE.OPERADOR_ARITMETICO
                 ## == Transição para operadores lógicos == ## OOOOKKKKK
                 elif char in '!&|':
                     lexema = lexema + char
-                    estado = LEX.OPERADOR_LOGICO
+                    estado = STATE.OPERADOR_LOGICO
                 ## == Transição para operadores RELACIONAIS == ## OOOOKKKKK
                 elif char in '><=':
                     lexema = lexema + char
-                    estado = LEX.OPERADOR_RELACIONAL
+                    estado = STATE.OPERADOR_RELACIONAL
                 ## == Transição para identificadores == ## OOOOKKKKK
                 elif char in alfabeto:
                     lexema = lexema + char
-                    estado = LEX.IDENTIFICADOR        
-                ## == PARA TOKENS MAL FORMADOS == ##
+                    estado = STATE.IDENTIFICADOR        
+                ## == PARA TOKENS MAL FORMADOS == ## OOOOKKKKK
                 else:
                     erro = True 
                     lexema = lexema + char
@@ -133,7 +133,7 @@ for linha in linhas:
 
 
             # ---------- Estado para analise de STRINGS ---------- # OOOOKKKKK
-            case LEX.STRING:
+            case STATE.STRING:
                 # Se o caracter lido não for o fim da string, continue concatenando
                 if char != '"': 
                     lexema = lexema + char
@@ -143,36 +143,23 @@ for linha in linhas:
                 else: # Se for o fim
                     lexema = lexema + char
                     tokens.append(lexema)
-                    estado = LEX.INICIO # Volta para posição inicial
+                    estado = STATE.INICIO # Volta para posição inicial
                 i=i+1# Passo a linha
 
-            # ---------- Estado para analise de operador aritmético ---------- #
-            case LEX.OPERADOR_ARITMETICO:
-                if char in '+-*/' and i != final_pos_linha: # and i != final_pos_linha corresponde ao finnal da linha
-                    lexema = lexema + char
-                    if lexema == "//":
-                        # Devo encerrar a analise do lexema ou ir pro estado do comentário de linha
-                        pass
-                    elif lexema == "/*":
-                        # Devo ir pro estado de comentário de bloco
-                        pass
-                elif i == final_pos_linha: # Se for o fim da linha
-                    lexema = lexema + char
-                    tokens.append(lexema)
-                    estado = LEX.INICIO # Volta para posição inicial
-        
-
-            # ---------- Estado para analise de operador logico ---------- #  OOOKKKKK
-            case LEX.OPERADOR_LOGICO:
+            # ---------- Estado para analise de operador ARITMETICO ---------- #  
+            case STATE.OPERADOR_ARITMETICO:
                 # Se for um operador Relacional, transfere a responsabilidade
-                if lexema == "!" and char == "=":
-                    estado = LEX.OPERADOR_RELACIONAL
+                if lexema == "/" and char == "/":
+                    estado = STATE.COMENTARIO_LINHA
+                    continue
+                elif lexema == "/" and char == "*":
+                    estado = STATE.COMENTARIO_BLOCO
                     continue
                 # Se for um lógico duplo
                 elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
                     lexema = lexema + char
                     tokens.append(lexema)
-                    estado = LEX.INICIO # Volta para posição inicial
+                    estado = STATE.INICIO # Volta para posição inicial
                     i=i+1
                 # Se for o ! ou um lógico mal formado
                 else:
@@ -180,30 +167,53 @@ for linha in linhas:
                     if lexema == "&" or lexema == "|":
                         erro = True
                     tokens.append(lexema)
-                    estado = LEX.INICIO # Volta para posição inicial
+                    estado = STATE.INICIO # Volta para posição inicial
+        
+            case STATE.COMENTARIO_LINHA:
+                i=i+1
+
+            # ---------- Estado para analise de operador logico ---------- #  OOOKKKKK
+            case STATE.OPERADOR_LOGICO:
+                # Se for um operador Relacional, transfere a responsabilidade
+                if lexema == "!" and char == "=":
+                    estado = STATE.OPERADOR_RELACIONAL
+                    continue
+                # Se for um lógico duplo
+                elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
+                    lexema = lexema + char
+                    tokens.append(lexema)
+                    estado = STATE.INICIO # Volta para posição inicial
+                    i=i+1
+                # Se for o ! ou um lógico mal formado
+                else:
+                    # Se for mal formado
+                    if lexema == "&" or lexema == "|":
+                        erro = True
+                    tokens.append(lexema)
+                    estado = STATE.INICIO # Volta para posição inicial
 
 
             # ---------- Estado para analise de operador relacional ---------- #  OOOKKKKK
-            case LEX.OPERADOR_RELACIONAL:
+            case STATE.OPERADOR_RELACIONAL:
                 # Se for um operador Relacional, transfere a responsabilidade
                 if lexema == "!" and char == "=":
                     lexema = lexema + char
                     tokens.append(lexema)
-                    estado = LEX.INICIO
+                    estado = STATE.INICIO
                 # Se for um lógico duplo
                 elif (lexema=="=" and char=="=") or (lexema=="<" and char=="=") or (lexema==">" and char=="="):
                     lexema = lexema + char
                     tokens.append(lexema)
-                    estado = LEX.INICIO # Volta para posição inicial
+                    estado = STATE.INICIO # Volta para posição inicial
                 # Se for o ! ou um lógico mal formado
                 else:
                     tokens.append(lexema)
-                    estado = LEX.INICIO # Volta para posição inicial
+                    estado = STATE.INICIO # Volta para posição inicial
                     continue
                 i=i+1
 
             # ---------- Estado para analise de IDENTIFICADORES ---------- #  OOOOKKKKK
-            case LEX.IDENTIFICADOR:
+            case STATE.IDENTIFICADOR:
                 # Se for letra, num ou underline e não for o final da linha
                 if (not e_delimitador(char)):
                     # Se tiver algum caracter fora dos permitidos, sinalizo o erro
@@ -212,23 +222,26 @@ for linha in linhas:
                     lexema = lexema + char
                 else: # Se não for mais letra, num ou underline ou ainda se for o final da linha
                     tokens.append(lexema)
-                    estado = LEX.INICIO # Vai para o inicio
+                    estado = STATE.INICIO # Vai para o inicio
                     continue
                 i=i+1# Passo a linha
 
             # ---------- Estado para analise de DELIMITADORES ---------- # OOOOKKKKK
-            case LEX.DELIMITADOR:
+            case STATE.DELIMITADOR:
                 # só serve para salvar na estrutura de palavra reservada
                 tokens.append(lexema)
-                estado = LEX.INICIO
+                estado = STATE.INICIO
                 i=i+1# Passo a linha
 
     # Se o lexema que estiver aqui for de algum estado incompleto
-    ## PPENSAR QUANDO TIVER O COMENTÁRIO
-    if lexema and estado != LEX.INICIO:
-        tokens.append(lexema)
-        # Lembrar de ver a lógica para o caso de 
-        estado = LEX.INICIO
+    ## PENSAR QUANDO TIVER O COMENTÁRIO
+    if lexema and estado != STATE.INICIO:
+        if estado == STATE.COMENTARIO_LINHA:
+            estado = STATE.INICIO
+        else:
+            tokens.append(lexema)
+            # Lembrar de ver a lógica para o caso de 
+            estado = STATE.INICIO
 
 print(tokens)
 
