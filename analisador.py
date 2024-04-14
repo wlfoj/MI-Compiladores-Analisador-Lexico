@@ -232,11 +232,21 @@ for linha in linhas:
                     if not e_ide_valido(char):
                         erro = True
                     lexema = lexema + char
-                else: # Se não for mais letra, num ou underline ou ainda se for o final da linha
-                    tokens.append(lexema)
-                    estado = STATE.INICIO # Vai para o inicio
+                else: # Se for um delimitador
+                    # Se for palavra reservada
+                    if lexema in reservadas:
+                        estado = STATE.RESERVADO
+                    else:
+                        tokens.append(lexema)
+                        estado = STATE.INICIO # Vai para o inicio
                     continue
                 i=i+1# Passo a linha
+
+
+            case STATE.RESERVADO:
+                tokens.append(lexema)
+                estado = STATE.INICIO # Vai para o inicio      
+
 
             # ---------- Estado para analise de DELIMITADORES ---------- # OOOOKKKKK
             case STATE.DELIMITADOR:
