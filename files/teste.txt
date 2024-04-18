@@ -6,3 +6,12 @@ verdadeiro ok
 abc_abc//<&kaka
 /*pedor,jubi; */
 "dsnidç
+/*
+comentario **/
+Tes&ste
+C@rlos&&los
+1.1
+1
+1.1.1
+1.-4
+--

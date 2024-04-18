@@ -122,7 +122,11 @@ for linha in linhas:
                 ## == Transição para identificadores == ## OOOOKKKKK
                 elif char in alfabeto:
                     lexema = lexema + char
-                    estado = STATE.IDENTIFICADOR        
+                    estado = STATE.IDENTIFICADOR
+                ## == Transição para números == ## VER OS NEGATIVOS      
+                elif char.isdigit():
+                    lexema = lexema + char
+                    estado = STATE.NUMERO      
                 ## == PARA TOKENS MAL FORMADOS == ## OOOOKKKKK
                 else:
                     erro = True 
@@ -204,6 +208,30 @@ for linha in linhas:
                     tokens.append(lexema)
                     estado = STATE.INICIO # Volta para posição inicial
 
+            # -----------iniciando numero------------------# EDITANDO... 
+            case STATE.NUMERO:
+                if char.isdigit():  # Continua a leitura de dígitos
+                    lexema += char
+                elif char == '.':  # Ponto pode indicar início de um float
+                    if '.' in lexema:  # Já contém um ponto, logo mais um ponto é um erro
+                        erro = True
+                    lexema += char
+                    # Verifica se o próximo caractere é um sinal negativo, o que é inválido aqui
+                    if i + 1 <= final_pos_linha and linha[i + 1] == '-':
+                        erro = True
+                elif char == '-' and lexema and lexema[-1] == '.':  # Caso específico de ponto seguido por '-'
+                    lexema += char
+                    erro = True
+                else:  # Outro caractere que não é dígito, ponto ou sinal imediatamente inválido
+                    if lexema.count('.') > 1 or lexema[-1] == '.':  # Final com ponto ou múltiplos pontos
+                        erro = True
+                    if lexema[-1] == '-' and lexema[-2] == '.':  # Formato "1.-" é um erro
+                        erro = True
+                    if not erro:  # Se não há erro, salva o token
+                        tokens.append(lexema)
+                    estado = STATE.INICIO  # Retorna ao estado inicial para processar o novo caractere
+                    continue  # Importante para não perder o caractere atual de transição
+                i += 1  # Avança para o próximo caractere
 
             # ---------- Estado para analise de operador relacional ---------- #  OOOKKKKK
             case STATE.OPERADOR_RELACIONAL:
