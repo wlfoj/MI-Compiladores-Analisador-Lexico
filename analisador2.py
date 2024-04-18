@@ -254,7 +254,6 @@ for linha in linhas:
                     continue  # Importante para não perder o caractere de transição atual
                 i += 1  # Avança para o próximo caractere
 
-
             # ---------- Estado para analise de operador relacional ---------- #  OOOKKKKK
             case STATE.OPERADOR_RELACIONAL:
                 # Se for um operador Relacional, transfere a responsabilidade
