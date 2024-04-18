@@ -210,28 +210,42 @@ for linha in linhas:
 
             # -----------iniciando numero------------------# EDITANDO... 
             case STATE.NUMERO:
-                if char.isdigit():  # Continua a leitura de dígitos
+                if char.isdigit():  # Continua lendo dígitos
                     lexema += char
-                elif char == '.':  # Ponto pode indicar início de um float
-                    if '.' in lexema:  # Já contém um ponto, logo mais um ponto é um erro
-                        erro = True
-                    lexema += char
-                    # Verifica se o próximo caractere é um sinal negativo, o que é inválido aqui
-                    if i + 1 <= final_pos_linha and linha[i + 1] == '-':
-                        erro = True
-                elif char == '-' and lexema and lexema[-1] == '.':  # Caso específico de ponto seguido por '-'
-                    lexema += char
-                    erro = True
-                else:  # Outro caractere que não é dígito, ponto ou sinal imediatamente inválido
-                    if lexema.count('.') > 1 or lexema[-1] == '.':  # Final com ponto ou múltiplos pontos
-                        erro = True
-                    if lexema[-1] == '-' and lexema[-2] == '.':  # Formato "1.-" é um erro
-                        erro = True
-                    if not erro:  # Se não há erro, salva o token
-                        tokens.append(lexema)
-                    estado = STATE.INICIO  # Retorna ao estado inicial para processar o novo caractere
-                    continue  # Importante para não perder o caractere atual de transição
+                elif char == '.':  # Ponto pode indicar início de um float ou ser um delimitador
+                    if '.' in lexema:  # Já contém um ponto
+                        # Verifica se o token anterior era um número com no máximo um ponto e sem ponto final
+                        partes = lexema.split('.')
+                        if len(partes) > 2 or lexema.endswith('.'):  # Mais de um ponto ou termina com ponto
+                            tokens.append(lexema)  # Salva como número mal formado
+                            lexema = ''  # Reinicia lexema para o próximo token
+                            tokens.append('.')  # Adiciona o ponto como delimitador
+                        else:
+                            lexema += char  # Assume continuação de um float
+                            # Verifica se o próximo caractere é um sinal negativo, indicando um número mal formado
+                            if i + 1 < final_pos_linha and linha[i + 1] == '-':
+                                lexema += '-'  # Adiciona '-' para fazer parte do token atual
+                                i += 1  # Incrementa para pular o caractere '-' no processamento subsequente
+                    else:
+                        lexema += char  # Primeiro ponto, possível início de float
+                        # Verifica se o próximo caractere é um sinal negativo, indicando potencialmente um número mal formado
+                        if i + 1 < final_pos_linha and linha[i + 1] == '-':
+                            lexema += '-'  # Adiciona '-' para fazer parte do token atual
+                            i += 1  # Incrementa para pular o caractere '-' no processamento subsequente
+                else:  # Qualquer outro caractere
+                    if lexema.count('.') > 1 or lexema.endswith('.'):  # Termina com ponto ou múltiplos pontos
+                        if lexema.endswith('.'):
+                            tokens.append(lexema[:-1])  # Salva a parte numérica
+                            tokens.append('.')  # Salva o ponto final como delimitador
+                        else:
+                            tokens.append(lexema)  # Salva como número mal formado
+                    else:
+                        tokens.append(lexema)  # Salva o número válido ou float com um único ponto
+                    lexema = ''  # Reinicia lexema
+                    estado = STATE.INICIO  # Retorna ao estado inicial
+                    continue  # Importante para não perder o caractere de transição atual
                 i += 1  # Avança para o próximo caractere
+
 
             # ---------- Estado para analise de operador relacional ---------- #  OOOKKKKK
             case STATE.OPERADOR_RELACIONAL:
