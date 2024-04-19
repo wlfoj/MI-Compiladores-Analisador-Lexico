@@ -45,6 +45,7 @@ class STATE(Enum):
     OPERADOR_ARITMETICO = 7
     OPERADOR_LOGICO = 8
     OPERADOR_RELACIONAL = 9
+    NUMERO_DECIMAL = 10
 
 
 ### ============================ BLOCO DE FUNÇÕES AUXILIARES PARA IDENTIFICAÇÃO E CONTROLE DE TOKENS ============================ ###
@@ -330,56 +331,38 @@ def analisador_lexico(linhas):
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO # Volta para posição inicial
 
-                # -----------iniciando numero------------------# EDITANDO... 
+                # ---------- Estado para análise de números inteiros ----------
                 case STATE.NUMERO:
                     if char.isdigit():  # Continua lendo dígitos
                         lexema += char
-                    elif char == '.':  # Ponto pode indicar início de um float ou ser um delimitador
-                        if '.' in lexema and not any(c.isalpha() for c in lexema):  # Já contém um ponto e não letras
-                            partes = lexema.split('.')
-                            if len(partes) > 2 or lexema.endswith('.'):  # Mais de um ponto ou termina com ponto
-                                #tokens.append(lexema)  # Salva como número mal formado
-                                lexema = ''  # Reinicia lexema para o próximo token
-                                #tokens.append('.')  # Adiciona o ponto como delimitador
-                            else:
-                                lexema += char  # Assume continuação de um float
-                                if i + 1 < final_pos_linha and linha[i + 1] == '-':
-                                    lexema += '-'  # Adiciona '-' para fazer parte do token atual
-                                    i += 1  # Incrementa para pular o caractere '-' no processamento subsequente
-                        else:
-                            # Verifica se estamos encerrando um token com caracteres não-digitais
-                            if any(c.isalpha() for c in lexema):
-                                #tokens.append(lexema)  # Salva o token atual como mal formado ou completo
-                                lexema = ''  # Reinicia lexema
-                                #tokens.append('.')  # Adiciona o ponto como delimitador separado
-                            else:
-                                lexema += char  # Primeiro ponto, possível início de float
-                                if i + 1 < final_pos_linha and linha[i + 1] == '-':
-                                    lexema += '-'  # Adiciona '-' para fazer parte do token atual
-                                    i += 1  # Incrementa para pular o caractere '-' no processamento subsequente
-                    elif char.isalpha():  # Trata caracteres alfabéticos após o número
-                        lexema += char  # Adiciona o caractere ao lexema atual
-                    else:  # Qualquer outro caractere que não seja dígito ou ponto
-                        if lexema.endswith('.'):
-                            if any(c.isalpha() for c in lexema):  # Verifica se tem letras antes do ponto
-                                #tokens.append(lexema[:-1])  # Salva a parte numérica e letras como mal formado
-                                #tokens.append('.')  # Salva o ponto como delimitador
-                                pass
-                            else:
-                                #tokens.append(lexema[:-1])  # Salva a parte numérica
-                                #tokens.append('.')  # Salva o ponto final como delimitador
-                                pass
-                        elif lexema.count('.') > 1:  # Múltiplos pontos
-                            #tokens.append(lexema)  # Salva como número mal formado
-                            pass
-                        else:
-                            #tokens.append(lexema)  # Salva como número válido ou float com um único ponto
-                            pass
-                        lexema = ''  # Reinicia lexema
-                        estado = STATE.INICIO  # Retorna ao estado inicial
-                        continue  # Importante para não perder o caractere de transição atual
+                    elif char == '.':
+                        lexema += char
+                        estado = STATE.NUMERO_DECIMAL
+                    elif e_delimitador(char):  # Finaliza o token de número e volta ao estado inicial
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                        estado = STATE.INICIO
+                        continue  # Não avança o índice, pois o caractere atual pode ser o início de um novo token
+                    else:
+                        lexema += char
+                        token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                     i += 1  # Avança para o próximo caractere
 
+                # ---------- Estado para análise de números decimais ----------
+                case STATE.NUMERO_DECIMAL:
+                    if char.isdigit():  # Continua lendo dígitos após o ponto decimal
+                        lexema += char
+                        #token_atual = TOKENS_TYPE.NUMERO  # Mantém como número até confirmar que é um formato válido
+                        #estado = STATE.NUMERO_DECIMAL
+                    elif char in " +-*/><=!&|": 
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                        estado = STATE.INICIO
+                        continue
+                    else:  # Finaliza o token de número decimal e volta ao estado inicial
+                        lexema += char
+                        token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
+                        estado = STATE.INICIO
+                        continue  # Não avança o índice, pois o caractere atual pode ser o início de um novo token
+                    i += 1  # Avança para o próximo caractere
 
                 # ---------- Estado para analise de operador relacional ---------- #  OOOKKKKK
                 case STATE.OPERADOR_RELACIONAL:

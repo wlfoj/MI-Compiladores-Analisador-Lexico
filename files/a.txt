@@ -1,19 +1,12 @@
-algoritmo principal(){
-variaveis{
-	real f = 3.0;
-	@
-	texto msg = "teste
-}
-3.3.3
-a-5
-@--3
-se ( f>= -10) && (f < ) {
-	escreva("mensagem);
-	escreva("menÇagem");
-// exemplo de teste do lexico
-}
-a
-/* exa869 mi processadores de
-		linguagem de programacao
-}11
-asasa
+1
+1a
+45a.87
+47+44
+22)88
+13&77
+1.1
+1.1..
+1.1.1
+1.1.1.
+1.1.1.1
+
