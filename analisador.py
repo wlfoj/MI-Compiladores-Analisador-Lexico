@@ -193,7 +193,6 @@ def analisador_lexico(linhas):
         while i <= final_pos_linha:  
             char = linha[i]
 
-
             match estado:
                 # ---------- Estado inicial da aplicação ---------- #
                 case STATE.INICIO:
@@ -205,11 +204,16 @@ def analisador_lexico(linhas):
                     ## == Transição para cadeia == ## OOOOKKKKK
                     elif char == '"':
                         lexema = lexema + char # Adiciono o caracter de inicio 
+                        print("achei", linha_num)
+                        print(lexema+"\n\n")
                         token_atual = TOKENS_TYPE.CADEIA_DE_CARACTERES
                         estado = STATE.CADEIA_DE_CARACTERES # e vou pro prox estado
                     ## == Transição para delimitadores == ## OOOOKKKKK
                     elif char in delimitadores:
                         lexema = lexema + char
+                        # if char == '}':
+                        #     print("achei", linha_num)
+                        #     print(lexema+"\n\n")
                         token_atual = TOKENS_TYPE.DELIMITADOR
                         estado = STATE.DELIMITADOR
                         continue
@@ -249,6 +253,7 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para analise de CADEIA_DE_CARACTERESS ---------- # OOOOKKKKK
                 case STATE.CADEIA_DE_CARACTERES:
+                    print("Entrei", linha_num, "lexema: ", lexema)
                     # Se o caracter lido não for o fim da string, continue concatenando
                     if char != '"': 
                         lexema = lexema + char
@@ -289,7 +294,6 @@ def analisador_lexico(linhas):
                                                                                 TOKENS_TYPE.CADEIA_MAL_FORMADA,
                                                                                 None]):
                         estado = STATE.NUMERO
-                        print("Entrei numero")
                     # Se for o um único dos +-/* e depois não vier um número
                     else:
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
@@ -425,6 +429,7 @@ def analisador_lexico(linhas):
                     ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO
                     i=i+1# Passo a linha
+        
 
         # Se o lexema que estiver aqui for de algum estado incompleto
         ## PENSAR QUANDO TIVER O COMENTÁRIO

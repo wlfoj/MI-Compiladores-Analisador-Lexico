@@ -31,7 +31,7 @@
 10 CMF "menÃ‡agem"
 16 CoMF /* exa869 mi processadores de
 		linguagem de programacao
-}
+}11
 
 
 Analise lexica concluida com sucesso!!
