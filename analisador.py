@@ -355,9 +355,10 @@ def analisador_lexico(linhas):
                         lexema += char
                         #token_atual = TOKENS_TYPE.NUMERO  # Mantém como número até confirmar que é um formato válido
                         #estado = STATE.NUMERO_DECIMAL
-                    elif lexema[-1] == '.' and ( not char.isdigit()):# 1.@
+                    elif lexema[1] == '.' and ( not char.isdigit()):# 1.@
                             lexema += char
                             token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
+                            estado = STATE.NUMERO
                     elif e_delimitador(char) and char != '.': 
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
