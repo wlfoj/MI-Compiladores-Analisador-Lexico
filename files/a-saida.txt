@@ -12,25 +12,31 @@
 5 IDE texto
 5 IDE msg
 5 REL =
-9 IDE mensagem
-9 DEL )
-9 DEL ;
+6 DEL }
+7 NRO 3.3.3
+8 PRE se
+8 DEL (
+8 IDE f
+8 REL >=
+8 DEL )
+8 LOG &&
+8 DEL (
+8 IDE f
+8 REL <
+8 DEL )
+8 DEL {
+9 PRE escreva
+9 DEL (
 10 PRE escreva
 10 DEL (
 10 DEL )
 10 DEL ;
 12 DEL }
 13 IDE a
-16 ART /* exa869 mi processadores de
-		linguagem de programacao
-}11
 
-3 TMF 	
-4 TMF 	
 4 TMF @
-5 TMF 	
-9 CMF 	escreva("
-10 TMF 	
+5 CMF "teste
+9 CMF "mensagem);
 10 CMF "menÃ‡agem"
 
 Analise lexica concluida com sucesso!!

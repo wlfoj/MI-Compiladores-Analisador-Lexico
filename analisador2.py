@@ -1,5 +1,7 @@
+import os
 from enum import Enum
 
+### ============================ BLOCO DE ESTRUTURAS BÁSICAS DE TOKENS PARA CONTROLE ============================ ###
 # Alfabeto 
 alfabeto = [chr(ord('a') + i) for i in range(26)] # Minusculas
 alfabeto = alfabeto + [chr(ord('A') + i) for i in range(26)] # Maiusculas
@@ -12,23 +14,8 @@ reservadas = ['algoritmo', 'principal', 'variaveis', 'constantes', 'registro', '
 
 delimitadores = [ ';', ',', '.', '(', ')', '[', ']', '{', '}' ]
 
-# Função para validar a cadeia ou identificador. Ver se o caracter é um simbolo valido
-def e_cadeia_valida(caracter):
-    valor_inteiro = ord(caracter) # Obtem o valor inteiro de base 10 referente ao caracter ASCII
-    return (valor_inteiro >= 32 and valor_inteiro <=126) and (valor_inteiro != 34)
 
-# Função que retorna 1 se o caracter for valido para um identificado
-def e_ide_valido(char):
-    return (char in alfabeto) or (char in digitos) or (char == '_')
-
-# Retorna 1 se char for delimitador
-def e_delimitador(char):
-    return char in " +-*/><=!&|" or char in delimitadores
-
-def salva_lexema(lexema, linha, tipo, lista):
-    lista.append({'linha': linha, 'tipo': tipo, 'valor': lexema})
-
-# Tipos de tokens
+# Tipos de tokens e suas siglas para arquivo de saída
 class TOKENS_TYPE (Enum):
     TOKEN_MAL_FORMADO = "TMF"
     CADEIA_MAL_FORMADA = "CMF"
@@ -45,20 +32,130 @@ class TOKENS_TYPE (Enum):
     OPERADOR_ARITMETICO = "ART"
     OPERADOR_LOGICO = "LOG"
 
-
 # Estados
 class STATE(Enum):
     INICIO = 0
-    STRING = 1 # OK
+    CADEIA_DE_CARACTERES = 1 # OK
     COMENTARIO_LINHA = 2
     COMENTARIO_BLOCO = 20
     IDENTIFICADOR = 3 # OK +-
     DELIMITADOR = 4 
     NUMERO = 5 
-    RESERVADO = 6 # OK
+    PALAVRA_RESERVADA = 6 # OK
     OPERADOR_ARITMETICO = 7
     OPERADOR_LOGICO = 8
     OPERADOR_RELACIONAL = 9
+
+
+### ============================ BLOCO DE FUNÇÕES AUXILIARES PARA IDENTIFICAÇÃO E CONTROLE DE TOKENS ============================ ###
+def e_cadeia_valida(caracter) -> bool:## OOKK
+    ''' Função que verifica se a cadeia de caracterres é válida. verifica se o caracter está dentro dos permitidos da tabela ASCII
+    Return.
+        True se for permitido, False se não for 
+        '-'
+    '''
+    valor_inteiro = ord(caracter) # Obtem o valor inteiro de base 10 referente ao caracter ASCII
+    return (valor_inteiro >= 32 and valor_inteiro <=126) and (valor_inteiro != 34)
+
+
+def e_ide_valido(char) -> bool:## OOKK
+    ''' Função que verifica se o identificador é válido. observa se o caracter é permitido para Identificadores
+    Return.
+        True se for permitido, False se não for 
+        '-'
+    '''
+    return (char in alfabeto) or (char in digitos) or (char == '_')
+
+
+def e_delimitador(char) -> bool: ## OOKK
+    ''' Função que verifica se o caracter é um delimitador ou operador
+    Return.
+        True se for, False se não for 
+        '-'
+    '''
+    return char in " +-*/><=!&|" or char in delimitadores
+
+
+def salva_lexema(lexema, linha, tipo, lista_TBF, lista_TMF): ## OOKK
+    ''' Função que adiciona os lexemas na lista de tokens mal formados ou de tokens normais
+    Param.
+        lexema      -> valor do lexema a ser salvo
+        linha       -> linha do arquivo onde o lexema apareceu
+        tipo        -> tipo de token ao qual o lexema pertence
+        lista_TBF   -> lista de tokens que não apresentam erros
+        lista_TMF   -> lista de tokens que apresentam erros
+
+    Return.
+        token       -> Dicionário token salvo, seguindo a estrutura definida no corpo da função
+    '''
+    token = {'linha': linha, 'tipo': tipo, 'valor': lexema}
+    if tipo in [TOKENS_TYPE.TOKEN_MAL_FORMADO,
+                TOKENS_TYPE.CADEIA_MAL_FORMADA,
+                TOKENS_TYPE.COMENTARIO_MAL_FORMADO,
+                TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO,
+                TOKENS_TYPE.NUMERO_MAL_FORMADO]:
+        lista_TMF.append(token)
+    else:
+        lista_TBF.append(token)
+    return token
+
+
+### ============================ BLOCO DE FUNÇÕES PARA LEITURA E ESCRITA DE ARQUIVOS ============================ ###
+def escreve_saida(nome_arquivo_entrada, lista_TBF, lista_TMF, erro_no_processo):## OOKK
+    ''' Função para escrever os tokens no arquivo de saída no formato esperado, bem como a mensagem de sucesso ou erro do processo
+    Param.
+        nome_arquivo_entrada -> Caminho completo relativo até o arquivo, incluindo seu nome.
+                                EX. nome_arquivo_entrada = "files/entrada.txt"
+        erro_no_processo     -> Para informar se houve erro no processo do analisador lexico (True) ou não (False)
+        lista_TBF            -> lista de tokens que não apresentam erros
+        lista_TMF            -> lista de tokens que apresentam erros
+
+    '''
+    nome_arquivo_saida = nome_arquivo_entrada.replace(".txt", "-saida.txt")
+    # Abre o arquivo de saída
+    with open(nome_arquivo_saida, 'w', encoding='utf-8') as f:
+        # Percorre a lista de tokens bem formados e adiciona no arquivo
+        for token in lista_TBF:
+            f.write(f"{token['linha']} {token['tipo'].value} {token['valor']}\n")
+        f.write("\n") # só para separar melhor os tokens mal formados
+        # Percorre a lista de tokens mal formados e escreve no arquivo
+        for token in lista_TMF:
+            f.write(f"{token['linha']} {token['tipo'].value} {token['valor']}\n")
+        f.write("\n") # só para separar melhor os comentários de erro e sucesso
+        # Escreve a mensagem de sucesso ou de erro
+        if (erro_no_processo):
+            f.write("A analise lexica não pôde ser concluído, pois houver erro durante o processo")
+        else:
+            f.write("Analise lexica concluida com sucesso!!")
+
+
+def obtem_todas_linhas(nome_arquivo_entrada) -> list:## OOKK
+    ''' Função para obter todas as linhas do arquivo de entrada.
+    Param.
+        nome_arquivo_entrada -> Caminho completo relativo até o arquivo, incluindo seu nome.
+                                EX. nome_arquivo_entrada = "files/entrada.txt"
+    Return.
+        linhas               -> Todas as linhas presentes no arquivo de entrada
+    '''
+    with open(nome_arquivo_entrada, "r") as a:
+        linhas = a.readlines()
+    return linhas
+
+
+def obter_nomes_arquivos_entrada() -> list:## OOKK
+    ''' Função que obtem uma lista com o nome de todos os arquivos que são validos como arquivos de entrada para o analisador lexico
+    Return.
+        lista_arquivos_entrada -> Caminho completo relativo até o arquivo, incluindo seu nome.
+                                EX. nome_arquivo_entrada = "files/entrada.txt"
+    '''
+    lista_arquivos_entrada = []
+    # Define o caminho da pasta onde os arquivos serão lidos
+    PASTA = 'files/'
+    for arquivo in os.listdir(PASTA):
+        # Evita processar arquivos que já contêm "-saida" no nome e os que não o ".txt" no final
+        if arquivo.endswith('.txt') and '-saida.txt' not in arquivo:
+            lista_arquivos_entrada.append(PASTA + arquivo)
+    return lista_arquivos_entrada
 
 
 
@@ -66,7 +163,7 @@ with open("files/a.txt", "r") as a:
     linhas = a.readlines()
 #print("Tamanho da linha", len(linha))
 
-
+### ============================ BLOCO DA FUNÇÃO QUE FAZ A ANALISE LEXICA () ============================ ###
 estado = STATE.INICIO
 tipo_ultimo_token = 0
 lexema = ''
@@ -76,7 +173,7 @@ erro = False
 linha_num = 0 # Número da linha analisada
 
 for linha in linhas:
-    linha = linha.replace('\n', '')
+    linha = linha.replace('\n', '').replace('\t', '')
 
     linha_num = linha_num + 1
     i = 0 # iterador da linha para fazer o fatiamento da string
@@ -86,6 +183,7 @@ for linha in linhas:
     if estado != STATE.COMENTARIO_BLOCO:
         lexema = '' # não resetar se for um comentário
         erro = False
+        tipo_ultimo_token = None
 
     while i <= final_pos_linha:  
         char = linha[i]
@@ -102,32 +200,39 @@ for linha in linhas:
                 ## == Transição para cadeia == ## OOOOKKKKK
                 elif char == '"':
                     lexema = lexema + char # Adiciono o caracter de inicio 
-                    estado = STATE.STRING # e vou pro prox estado
+                    estado = STATE.CADEIA_DE_CARACTERES # e vou pro prox estado
+                    tipo_ultimo_token = TOKENS_TYPE.CADEIA_DE_CARACTERES
                 ## == Transição para delimitadores == ## OOOOKKKKK
                 elif char in delimitadores:
                     lexema = lexema + char
                     estado = STATE.DELIMITADOR
+                    tipo_ultimo_token = TOKENS_TYPE.DELIMITADOR
                     continue
                 ## == Transição para operadores aritméticos == ## OOOOKKKKK
                 elif char in '+-*/':
                     lexema = lexema + char
                     estado = STATE.OPERADOR_ARITMETICO
+                    tipo_ultimo_token = TOKENS_TYPE.OPERADOR_ARITMETICO
                 ## == Transição para operadores lógicos == ## OOOOKKKKK
                 elif char in '!&|':
                     lexema = lexema + char
                     estado = STATE.OPERADOR_LOGICO
+                    tipo_ultimo_token = TOKENS_TYPE.OPERADOR_LOGICO
                 ## == Transição para operadores RELACIONAIS == ## OOOOKKKKK
                 elif char in '><=':
                     lexema = lexema + char
                     estado = STATE.OPERADOR_RELACIONAL
+                    tipo_ultimo_token = TOKENS_TYPE.OPERADOR_RELACIONAL
                 ## == Transição para identificadores == ## OOOOKKKKK
                 elif char in alfabeto:
                     lexema = lexema + char
                     estado = STATE.IDENTIFICADOR
+                    tipo_ultimo_token = TOKENS_TYPE.IDENTIFICADOR
                 ## == Transição para números == ## VER OS NEGATIVOS      
                 elif char.isdigit():
                     lexema = lexema + char
                     estado = STATE.NUMERO      
+                    tipo_ultimo_token = TOKENS_TYPE.NUMERO
                 ## == PARA TOKENS MAL FORMADOS == ## OOOOKKKKK
                 else:
                     erro = True 
@@ -140,17 +245,17 @@ for linha in linhas:
 
 
             # ---------- Estado para analise de STRINGS ---------- # OOOOKKKKK
-            case STATE.STRING:
+            case STATE.CADEIA_DE_CARACTERES:
                 # Se o caracter lido não for o fim da string, continue concatenando
                 if char != '"': 
                     lexema = lexema + char
                     # Se tiver algum caracter fora dos permitidos, sinalizo o erro
                     if not e_cadeia_valida(char):
-                        erro = True
+                        tipo_ultimo_token = TOKENS_TYPE.CADEIA_MAL_FORMADA
                 else: # Se for o fim
                     lexema = lexema + char
                     tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    #tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                 i=i+1# Passo a linha
 
@@ -169,7 +274,7 @@ for linha in linhas:
                 elif (lexema=="+" and char=="+") or (lexema=="-" and char=="-"):
                     lexema = lexema + char
                     tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    #tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                     i=i+1
                 ## Se for o caso de um número negativo
@@ -185,7 +290,7 @@ for linha in linhas:
                 # Se for o um único dos +-/* e depois não vier um número
                 else:
                     tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    #tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
         
 
@@ -211,7 +316,7 @@ for linha in linhas:
                 elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
                     lexema = lexema + char
                     tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    #tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                     i=i+1
                 # Se for o ! ou um lógico mal formado
@@ -221,7 +326,8 @@ for linha in linhas:
                         erro = True
                         tipo_ultimo_token = TOKENS_TYPE.TOKEN_MAL_FORMADO
                     else:
-                        tipo_ultimo_token = estado
+                        #tipo_ultimo_token = estado
+                        pass
 
                     tokens.append(lexema)
                     estado = STATE.INICIO # Volta para posição inicial
@@ -279,12 +385,10 @@ for linha in linhas:
                 if (lexema == "!" and char == "=") or (lexema=="=" and char=="=") or (lexema=="<" and char=="=") or (lexema==">" and char=="="):
                     lexema = lexema + char
                     tokens.append(lexema)
-                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                 # Se for um relacional simples <>=
                 else:
                     tokens.append(lexema)
-                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                     continue
                 i=i+1
@@ -295,23 +399,22 @@ for linha in linhas:
                 if (not e_delimitador(char)):
                     # Se tiver algum caracter fora dos permitidos, sinalizo o erro
                     if not e_ide_valido(char):
-                        erro = True
+                        tipo_ultimo_token = TOKENS_TYPE.CADEIA_MAL_FORMADA
                     lexema = lexema + char
                 else: # Se for um delimitador
                     # Se for palavra reservada
                     if lexema in reservadas:
-                        estado = STATE.RESERVADO
+                        estado = STATE.PALAVRA_RESERVADA
                     else:
                         tokens.append(lexema)
-                        tipo_ultimo_token = estado
                         estado = STATE.INICIO # Vai para o inicio
                     continue
                 i=i+1# Passo a linha
 
 
-            case STATE.RESERVADO:
+            case STATE.PALAVRA_RESERVADA:
                 tokens.append(lexema)
-                tipo_ultimo_token = estado
+                tipo_ultimo_token = TOKENS_TYPE.PALAVRA_RESERVADA
                 estado = STATE.INICIO # Vai para o inicio      
 
 
@@ -319,7 +422,7 @@ for linha in linhas:
             case STATE.DELIMITADOR:
                 # só serve para salvar na estrutura de palavra reservada
                 tokens.append(lexema)
-                tipo_ultimo_token = estado
+                tipo_ultimo_token = TOKENS_TYPE.DELIMITADOR
                 estado = STATE.INICIO
                 i=i+1# Passo a linha
 
@@ -330,6 +433,10 @@ for linha in linhas:
             estado = STATE.INICIO
         elif estado == STATE.COMENTARIO_BLOCO and (linha_num != len(linhas)):
             lexema = lexema + "\n"
+        elif estado == STATE.CADEIA_DE_CARACTERES: # Significa que a cadeia
+            tipo_ultimo_token = TOKENS_TYPE.CADEIA_MAL_FORMADA
+            tokens.append(lexema)
+            estado = STATE.INICIO
         else:
             tipo_ultimo_token = estado
             tokens.append(lexema)

@@ -179,7 +179,7 @@ def analisador_lexico(linhas):
 
     ### ===== Inicio do processo de analise lexica ===== ###
     for linha in linhas:
-        linha = linha.replace('\n', '')
+        linha = linha.replace('\n', '').replace('\t', '')
 
         linha_num = linha_num + 1
         i = 0 # iterador da linha para fazer o fatiamento da CADEIA_DE_CARACTERES
@@ -197,23 +197,18 @@ def analisador_lexico(linhas):
                 # ---------- Estado inicial da aplicação ---------- #
                 case STATE.INICIO:
                     lexema = '' # Reseta o lexema
-                    token_atual = None
+                    #token_atual = None
                     ## == Ignora espaços == ## OOOOKKKK
                     if char == " " or char == "":
                         pass
                     ## == Transição para cadeia == ## OOOOKKKKK
                     elif char == '"':
                         lexema = lexema + char # Adiciono o caracter de inicio 
-                        print("achei", linha_num)
-                        print(lexema+"\n\n")
                         token_atual = TOKENS_TYPE.CADEIA_DE_CARACTERES
                         estado = STATE.CADEIA_DE_CARACTERES # e vou pro prox estado
                     ## == Transição para delimitadores == ## OOOOKKKKK
                     elif char in delimitadores:
                         lexema = lexema + char
-                        # if char == '}':
-                        #     print("achei", linha_num)
-                        #     print(lexema+"\n\n")
                         token_atual = TOKENS_TYPE.DELIMITADOR
                         estado = STATE.DELIMITADOR
                         continue
@@ -253,7 +248,6 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para analise de CADEIA_DE_CARACTERESS ---------- # OOOOKKKKK
                 case STATE.CADEIA_DE_CARACTERES:
-                    print("Entrei", linha_num, "lexema: ", lexema)
                     # Se o caracter lido não for o fim da string, continue concatenando
                     if char != '"': 
                         lexema = lexema + char
@@ -275,6 +269,7 @@ def analisador_lexico(linhas):
                     elif lexema == "/" and char == "*":
                         lexema = lexema + char # Eestou salvando pq posso precisar usar para comentario mal formado
                         estado = STATE.COMENTARIO_BLOCO
+                        # token_atual = TOKENS_TYPE.
                         i=i+1
                         continue
                     # Se for um aritmético duplo
@@ -441,6 +436,8 @@ def analisador_lexico(linhas):
             # Se tenho algum lexema para pôr e é do tipo cac, significa que n fechei ela
             elif estado == STATE.CADEIA_DE_CARACTERES:
                 token_atual = TOKENS_TYPE.CADEIA_MAL_FORMADA
+                ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                estado = STATE.INICIO
             else:
                 ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI 
                 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -455,6 +452,7 @@ def analisador_lexico(linhas):
 
     # para tratar o comentário de bloco mal formado
     if lexema and estado==STATE.COMENTARIO_BLOCO:
+        print(lexema, linha_num)
         token_atual = TOKENS_TYPE.COMENTARIO_MAL_FORMADO
         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
     

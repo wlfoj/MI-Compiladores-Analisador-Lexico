@@ -13,4 +13,4 @@ se ( f>= -10) && (f < ) {
 a
 /* exa869 mi processadores de
 		linguagem de programacao
-}11
+}11*/
