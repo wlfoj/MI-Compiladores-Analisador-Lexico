@@ -180,7 +180,8 @@ for linha in linhas:
                                                                             TOKENS_TYPE.NUMERO_MAL_FORMADO,
                                                                             TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO,
                                                                             TOKENS_TYPE.CADEIA_DE_CARACTERES,
-                                                                            TOKENS_TYPE.CADEIA_MAL_FORMADA]):
+                                                                            TOKENS_TYPE.CADEIA_MAL_FORMADA,
+                                                                            None]):
                     estado = STATE.NUMERO
                     print("Entrei numero")
                 # Se for o um único dos +-/* e depois não vier um número
