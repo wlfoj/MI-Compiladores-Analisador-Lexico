@@ -8,22 +8,19 @@
 6 NRO 13
 6 NRO 77
 7 NRO 1.1
-8 DEL .
-8 DEL .
-9 DEL .
-9 NRO 1
-10 DEL .
-10 NRO 1.
-11 DEL .
-11 NRO 1.1
-13 DEL .
-13 NRO 2
-13 IDE NMF
+17 DEL ,
 
 2 NMF 1a
 3 NMF 45a.87
 6 TMF &
-13 TMF @
+8 NMF 1.1... 
+9 NMF 1.1..1
+10 NMF 1.1..1..
+11 NMF 1.1..1..1
+13 NMF 1.11..@2
 14 NMF 23f
+15 NMF 1.+
+16 NMF 1.,
+17 NMF 1. 
 
 Analise lexica concluida com sucesso!!
