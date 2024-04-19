@@ -287,8 +287,10 @@ def analisador_lexico(linhas):
                                                                                 TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO,
                                                                                 TOKENS_TYPE.CADEIA_DE_CARACTERES,
                                                                                 TOKENS_TYPE.CADEIA_MAL_FORMADA,
+                                                                                TOKENS_TYPE.TOKEN_MAL_FORMADO,
                                                                                 None]):
                         estado = STATE.NUMERO
+                        print("Entrei em numero", lexema+char)
                     # Se for o um único dos +-/* e depois não vier um número
                     else:
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
