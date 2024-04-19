@@ -200,7 +200,7 @@ def analisador_lexico(linhas):
                     lexema = '' # Reseta o lexema
                     token_atual = None
                     ## == Ignora espaços == ## OOOOKKKK
-                    if char == " ":
+                    if char == " " or char == "":
                         pass
                     ## == Transição para cadeia == ## OOOOKKKKK
                     elif char == '"':
