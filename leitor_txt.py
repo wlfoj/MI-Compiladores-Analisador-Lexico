@@ -26,13 +26,13 @@ def ler_e_criar_arquivo(nome_arquivo_original):
 
 def processar_todos_txt():
     # Define o caminho da pasta onde os arquivos serão lidos
-    pasta = 'files'
+    PASTA = 'files/'
     try:
-        for arquivo in os.listdir(pasta):
+        for arquivo in os.listdir(PASTA):
             # Evita processar arquivos que já contêm "-saida" no nome
             if arquivo.endswith('.txt') and '-saida.txt' not in arquivo:
                 ler_e_criar_arquivo(arquivo)
     except FileNotFoundError:
-        print(f"A pasta '{pasta}' não foi encontrada. Por favor, verifique se o caminho está correto.")
+        print(f"A pasta '{PASTA}' não foi encontrada. Por favor, verifique se o caminho está correto.")
 
 processar_todos_txt()

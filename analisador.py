@@ -459,11 +459,8 @@ def analisador_lexico(linhas):
 
 
 
-#print(tokens_bem_formados)
-#print(tokens_mal_formados)
 
-
-
+### ====================== EXECUÇÃO DO CÓDIGO ====================== ###
 if __name__ == '__main__':
     # Obtem a lista de arquivos que podem ser lidos
     arquivos_entrada = obter_nomes_arquivos_entrada()
