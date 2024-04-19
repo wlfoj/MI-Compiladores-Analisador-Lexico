@@ -25,8 +25,18 @@ def e_ide_valido(char):
 def e_delimitador(char):
     return char in " +-*/><=!&|" or char in delimitadores
 
-def salva_lexema(lexema, linha, tipo, lista):
-    lista.append({'linha': linha, 'tipo': tipo, 'valor': lexema})
+
+def salva_lexema(lexema, linha, tipo, lista_TBF, lista_TMF):
+    token = {'linha': linha, 'tipo': tipo, 'valor': lexema}
+    if tipo in [TOKENS_TYPE.TOKEN_MAL_FORMADO,
+                TOKENS_TYPE.CADEIA_MAL_FORMADA,
+                TOKENS_TYPE.COMENTARIO_MAL_FORMADO,
+                TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO,
+                TOKENS_TYPE.NUMERO_MAL_FORMADO]:
+        lista_TMF.append(token)
+    else:
+        lista_TBF.append(token)
+    return token
 
 # Tipos de tokens
 class TOKENS_TYPE (Enum):
@@ -49,16 +59,22 @@ class TOKENS_TYPE (Enum):
 # Estados
 class STATE(Enum):
     INICIO = 0
-    STRING = 1 # OK
+    CADEIA_DE_CARACTERES = 1 # OK
     COMENTARIO_LINHA = 2
     COMENTARIO_BLOCO = 20
     IDENTIFICADOR = 3 # OK +-
     DELIMITADOR = 4 
     NUMERO = 5 
-    RESERVADO = 6 # OK
+    PALAVRA_RESERVADA = 6 # OK
     OPERADOR_ARITMETICO = 7
     OPERADOR_LOGICO = 8
     OPERADOR_RELACIONAL = 9
+
+    TOKEN_MAL_FORMADO = "TMF"
+    CADEIA_MAL_FORMADA = "CMF"
+    COMENTARIO_MAL_FORMADO = "CoMF"
+    IDENTIFICADOR_MAL_FORMADO = "IMF"
+    NUMERO_MAL_FORMADO = "NMF"
 
 
 
@@ -68,9 +84,11 @@ with open("files/teste.txt", "r") as a:
 
 
 estado = STATE.INICIO
-tipo_ultimo_token = None
+ultimo_token = {'linha':  None, 'tipo': None, 'valor': None}
+token_atual = None
 lexema = ''
-tokens = []
+tokens_bem_formados = []
+tokens_mal_formados = []
 erro = False
 
 linha_num = 0 # Número da linha analisada
@@ -79,14 +97,14 @@ for linha in linhas:
     linha = linha.replace('\n', '')
 
     linha_num = linha_num + 1
-    i = 0 # iterador da linha para fazer o fatiamento da string
+    i = 0 # iterador da linha para fazer o fatiamento da CADEIA_DE_CARACTERES
     final_pos_linha = len(linha)-1
 
     # Não atualizo as infos, pois posso estar vindo de um comentário de bloco mal formado
     if estado != STATE.COMENTARIO_BLOCO:
         lexema = '' # não resetar se for um comentário
         erro = False
-        tipo_ultimo_token = None
+        ultimo_token = {'linha':  None, 'tipo': None, 'valor': None}
 
     while i <= final_pos_linha:  
         char = linha[i]
@@ -96,61 +114,67 @@ for linha in linhas:
             # ---------- Estado inicial da aplicação ---------- #
             case STATE.INICIO:
                 lexema = '' # Reseta o lexema
-                erro = False
+                token_atual = None
                 ## == Ignora espaços == ## OOOOKKKK
                 if char == " ":
                     pass
                 ## == Transição para cadeia == ## OOOOKKKKK
                 elif char == '"':
                     lexema = lexema + char # Adiciono o caracter de inicio 
-                    estado = STATE.STRING # e vou pro prox estado
+                    token_atual = TOKENS_TYPE.CADEIA_DE_CARACTERES
+                    estado = STATE.CADEIA_DE_CARACTERES # e vou pro prox estado
                 ## == Transição para delimitadores == ## OOOOKKKKK
                 elif char in delimitadores:
                     lexema = lexema + char
+                    token_atual = TOKENS_TYPE.DELIMITADOR
                     estado = STATE.DELIMITADOR
                     continue
                 ## == Transição para operadores aritméticos == ## OOOOKKKKK
                 elif char in '+-*/':
                     lexema = lexema + char
+                    token_atual = TOKENS_TYPE.OPERADOR_ARITMETICO
                     estado = STATE.OPERADOR_ARITMETICO
                 ## == Transição para operadores lógicos == ## OOOOKKKKK
                 elif char in '!&|':
                     lexema = lexema + char
+                    token_atual = TOKENS_TYPE.OPERADOR_LOGICO
                     estado = STATE.OPERADOR_LOGICO
                 ## == Transição para operadores RELACIONAIS == ## OOOOKKKKK
                 elif char in '><=':
                     lexema = lexema + char
+                    token_atual = TOKENS_TYPE.OPERADOR_RELACIONAL
                     estado = STATE.OPERADOR_RELACIONAL
                 ## == Transição para identificadores == ## OOOOKKKKK
                 elif char in alfabeto:
                     lexema = lexema + char
+                    token_atual = TOKENS_TYPE.IDENTIFICADOR
                     estado = STATE.IDENTIFICADOR
                 ## == Transição para números == ## VER OS NEGATIVOS      
                 elif char.isdigit():
                     lexema = lexema + char
+                    token_atual = TOKENS_TYPE.NUMERO
                     estado = STATE.NUMERO      
                 ## == PARA TOKENS MAL FORMADOS == ## OOOOKKKKK
                 else:
                     erro = True 
                     lexema = lexema + char
-                    tokens.append(lexema) 
-                    tipo_ultimo_token = TOKENS_TYPE.TOKEN_MAL_FORMADO
+                    token_atual = TOKENS_TYPE.TOKEN_MAL_FORMADO
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 i=i+1# Passo a linha
 
 
 
-            # ---------- Estado para analise de STRINGS ---------- # OOOOKKKKK
-            case STATE.STRING:
+            # ---------- Estado para analise de CADEIA_DE_CARACTERESS ---------- # OOOOKKKKK
+            case STATE.CADEIA_DE_CARACTERES:
                 # Se o caracter lido não for o fim da string, continue concatenando
                 if char != '"': 
                     lexema = lexema + char
                     # Se tiver algum caracter fora dos permitidos, sinalizo o erro
                     if not e_cadeia_valida(char):
-                        erro = True
+                        token_atual = TOKENS_TYPE.CADEIA_MAL_FORMADA
                 else: # Se for o fim
                     lexema = lexema + char
-                    tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO # Volta para posição inicial
                 i=i+1# Passo a linha
 
@@ -168,12 +192,11 @@ for linha in linhas:
                 # Se for um aritmético duplo
                 elif (lexema=="+" and char=="+") or (lexema=="-" and char=="-"):
                     lexema = lexema + char
-                    tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO # Volta para posição inicial
                     i=i+1
                 ## Se for o caso de um número negativo
-                elif (lexema=='-' and char.isdigit()) and (tipo_ultimo_token in [TOKENS_TYPE.OPERADOR_ARITMETICO, 
+                elif (lexema=='-' and char.isdigit()) and (ultimo_token['tipo'] in [TOKENS_TYPE.OPERADOR_ARITMETICO, 
                                                                             TOKENS_TYPE.OPERADOR_LOGICO, 
                                                                             TOKENS_TYPE.OPERADOR_RELACIONAL, 
                                                                             TOKENS_TYPE.DELIMITADOR,
@@ -186,8 +209,7 @@ for linha in linhas:
                     print("Entrei numero")
                 # Se for o um único dos +-/* e depois não vier um número
                 else:
-                    tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO # Volta para posição inicial
         
 
@@ -212,8 +234,7 @@ for linha in linhas:
                 # Se for um lógico duplo
                 elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
                     lexema = lexema + char
-                    tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO # Volta para posição inicial
                     i=i+1
                 # Se for o ! ou um lógico mal formado
@@ -221,11 +242,9 @@ for linha in linhas:
                     # Se for mal formado
                     if lexema == "&" or lexema == "|":
                         erro = True
-                        tipo_ultimo_token = TOKENS_TYPE.TOKEN_MAL_FORMADO
-                    else:
-                        tipo_ultimo_token = estado
+                        token_atual = TOKENS_TYPE.TOKEN_MAL_FORMADO
 
-                    tokens.append(lexema)
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO # Volta para posição inicial
 
             # -----------iniciando numero------------------# EDITANDO... 
@@ -236,9 +255,9 @@ for linha in linhas:
                     if '.' in lexema and not any(c.isalpha() for c in lexema):  # Já contém um ponto e não letras
                         partes = lexema.split('.')
                         if len(partes) > 2 or lexema.endswith('.'):  # Mais de um ponto ou termina com ponto
-                            tokens.append(lexema)  # Salva como número mal formado
+                            #tokens.append(lexema)  # Salva como número mal formado
                             lexema = ''  # Reinicia lexema para o próximo token
-                            tokens.append('.')  # Adiciona o ponto como delimitador
+                            #tokens.append('.')  # Adiciona o ponto como delimitador
                         else:
                             lexema += char  # Assume continuação de um float
                             if i + 1 < final_pos_linha and linha[i + 1] == '-':
@@ -247,9 +266,9 @@ for linha in linhas:
                     else:
                         # Verifica se estamos encerrando um token com caracteres não-digitais
                         if any(c.isalpha() for c in lexema):
-                            tokens.append(lexema)  # Salva o token atual como mal formado ou completo
+                            #tokens.append(lexema)  # Salva o token atual como mal formado ou completo
                             lexema = ''  # Reinicia lexema
-                            tokens.append('.')  # Adiciona o ponto como delimitador separado
+                            #tokens.append('.')  # Adiciona o ponto como delimitador separado
                         else:
                             lexema += char  # Primeiro ponto, possível início de float
                             if i + 1 < final_pos_linha and linha[i + 1] == '-':
@@ -260,15 +279,19 @@ for linha in linhas:
                 else:  # Qualquer outro caractere que não seja dígito ou ponto
                     if lexema.endswith('.'):
                         if any(c.isalpha() for c in lexema):  # Verifica se tem letras antes do ponto
-                            tokens.append(lexema[:-1])  # Salva a parte numérica e letras como mal formado
-                            tokens.append('.')  # Salva o ponto como delimitador
+                            #tokens.append(lexema[:-1])  # Salva a parte numérica e letras como mal formado
+                            #tokens.append('.')  # Salva o ponto como delimitador
+                            pass
                         else:
-                            tokens.append(lexema[:-1])  # Salva a parte numérica
-                            tokens.append('.')  # Salva o ponto final como delimitador
+                            #tokens.append(lexema[:-1])  # Salva a parte numérica
+                            #tokens.append('.')  # Salva o ponto final como delimitador
+                            pass
                     elif lexema.count('.') > 1:  # Múltiplos pontos
-                        tokens.append(lexema)  # Salva como número mal formado
+                        #tokens.append(lexema)  # Salva como número mal formado
+                        pass
                     else:
-                        tokens.append(lexema)  # Salva como número válido ou float com um único ponto
+                        #tokens.append(lexema)  # Salva como número válido ou float com um único ponto
+                        pass
                     lexema = ''  # Reinicia lexema
                     estado = STATE.INICIO  # Retorna ao estado inicial
                     continue  # Importante para não perder o caractere de transição atual
@@ -280,13 +303,11 @@ for linha in linhas:
                 # Se for um operador Relacional duplo
                 if (lexema == "!" and char == "=") or (lexema=="=" and char=="=") or (lexema=="<" and char=="=") or (lexema==">" and char=="="):
                     lexema = lexema + char
-                    tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO # Volta para posição inicial
                 # Se for um relacional simples <>=
                 else:
-                    tokens.append(lexema)
-                    tipo_ultimo_token = estado
+                    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                     estado = STATE.INICIO # Volta para posição inicial
                     continue
                 i=i+1
@@ -297,31 +318,29 @@ for linha in linhas:
                 if (not e_delimitador(char)):
                     # Se tiver algum caracter fora dos permitidos, sinalizo o erro
                     if not e_ide_valido(char):
-                        erro = True
+                        token_atual = TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO
                     lexema = lexema + char
                 else: # Se for um delimitador
                     # Se for palavra reservada
                     if lexema in reservadas:
-                        estado = STATE.RESERVADO
+                        estado = STATE.PALAVRA_RESERVADA
+                        token_atual = TOKENS_TYPE.PALAVRA_RESERVADA
                     else:
-                        tokens.append(lexema)
-                        tipo_ultimo_token = estado
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO # Vai para o inicio
                     continue
                 i=i+1# Passo a linha
 
 
-            case STATE.RESERVADO:
-                tokens.append(lexema)
-                tipo_ultimo_token = estado
+            case STATE.PALAVRA_RESERVADA:
+                ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO # Vai para o inicio      
 
 
             # ---------- Estado para analise de DELIMITADORES ---------- # OOOOKKKKK
             case STATE.DELIMITADOR:
                 # só serve para salvar na estrutura de palavra reservada
-                tokens.append(lexema)
-                tipo_ultimo_token = estado
+                ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO
                 i=i+1# Passo a linha
 
@@ -332,23 +351,27 @@ for linha in linhas:
             estado = STATE.INICIO
         elif estado == STATE.COMENTARIO_BLOCO:
             lexema = lexema + "\n"
+        # Se tenho algum lexema para pôr e é do tipo cac, significa que n fechei ela
+        elif estado == STATE.CADEIA_DE_CARACTERES:
+            token_atual = TOKENS_TYPE.CADEIA_MAL_FORMADA
         else:
-            tipo_ultimo_token = estado
-            tokens.append(lexema)
+            #???????????????????????????????????????????????????
+            ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
             # Lembrar de ver a lógica para o caso de 
             estado = STATE.INICIO
 
 # para tratar o comentário de bloco mal formado
 if lexema and estado==STATE.COMENTARIO_BLOCO:
-    tokens.append(lexema)
+    token_atual = TOKENS_TYPE.COMENTARIO_MAL_FORMADO
+    ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
 
 
 
 
 
 
-print(tokens)
-
+print(tokens_bem_formados)
+print(tokens_mal_formados)
 
 '''
 A iideia é fazer append em uma lista de tokens sempre que encontrar um.
