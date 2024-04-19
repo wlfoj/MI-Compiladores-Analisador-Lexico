@@ -1,26 +1,10 @@
-1 NRO 1
-4 NRO 47
-4 ART +
-4 NRO 44
-5 NRO 22
-5 DEL )
-5 NRO 88
-6 NRO 13
-6 NRO 77
-7 NRO 1.1
-17 DEL ,
+1 ART -3
+2 ART -3
+3 ART --
+3 NRO 3
 
-2 NMF 1a
-3 NMF 45a.87
-6 TMF &
-8 NMF 1.1... 
-9 NMF 1.1..1
-10 NMF 1.1..1..
-11 NMF 1.1..1..1
-13 NMF 1.11..@2
-14 NMF 23f
-15 NMF 1.+
-16 NMF 1.,
-17 NMF 1. 
+1 CMF "paçoca"
+2 TMF @
+3 TMF @
 
 Analise lexica concluida com sucesso!!

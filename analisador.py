@@ -260,6 +260,39 @@ def analisador_lexico(linhas):
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO # Volta para posição inicial
                     i=i+1# Passo a linha
+            
+
+                case STATE.COMENTARIO_LINHA:
+                    i=i+1
+                case STATE.COMENTARIO_BLOCO:
+                    lexema = lexema + char 
+                    if (lexema[-2:] == "*/"):
+                        estado = STATE.INICIO # Ignora tudo oq fez até aqui
+                    # LEMBRAR DE INCLUIR O \n QUANDO CHEGAR NO FINAL DA LINHA E N TIVER FECHADO O COMENTARIO
+                    i=i+1
+
+
+
+                # ---------- Estado para analise de operador logico ---------- #  OOOKKKKK
+                case STATE.OPERADOR_LOGICO:
+                    # Se for um operador Relacional, transfere a responsabilidade
+                    if lexema == "!" and char == "=":
+                        estado = STATE.OPERADOR_RELACIONAL
+                        continue
+                    # Se for um lógico duplo
+                    elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
+                        lexema = lexema + char
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                        estado = STATE.INICIO # Volta para posição inicial
+                        i=i+1
+                    # Se for o ! ou um lógico mal formado
+                    else:
+                        # Se for mal formado
+                        if lexema == "&" or lexema == "|":
+                            token_atual = TOKENS_TYPE.TOKEN_MAL_FORMADO
+
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                        estado = STATE.INICIO # Volta para posição inicial
 
                 # ---------- Estado para analise de operador ARITMETICO ---------- #  
                 case STATE.OPERADOR_ARITMETICO:
@@ -292,45 +325,13 @@ def analisador_lexico(linhas):
                                                                                 None]):
                         estado = STATE.NUMERO
                         lexema = lexema + char
-                        print("Entrei em numero", lexema+char)
+                        print("Entrei em numero", lexema)
+                        i = i+1
                     # Se for o um único dos +-/* e depois não vier um número
                     else:
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO # Volta para posição inicial
-            
 
-            
-                case STATE.COMENTARIO_LINHA:
-                    i=i+1
-                case STATE.COMENTARIO_BLOCO:
-                    lexema = lexema + char 
-                    if (lexema[-2:] == "*/"):
-                        estado = STATE.INICIO # Ignora tudo oq fez até aqui
-                    # LEMBRAR DE INCLUIR O \n QUANDO CHEGAR NO FINAL DA LINHA E N TIVER FECHADO O COMENTARIO
-                    i=i+1
-
-
-
-                # ---------- Estado para analise de operador logico ---------- #  OOOKKKKK
-                case STATE.OPERADOR_LOGICO:
-                    # Se for um operador Relacional, transfere a responsabilidade
-                    if lexema == "!" and char == "=":
-                        estado = STATE.OPERADOR_RELACIONAL
-                        continue
-                    # Se for um lógico duplo
-                    elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
-                        lexema = lexema + char
-                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
-                        estado = STATE.INICIO # Volta para posição inicial
-                        i=i+1
-                    # Se for o ! ou um lógico mal formado
-                    else:
-                        # Se for mal formado
-                        if lexema == "&" or lexema == "|":
-                            token_atual = TOKENS_TYPE.TOKEN_MAL_FORMADO
-
-                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
-                        estado = STATE.INICIO # Volta para posição inicial
 
                 # ---------- Estado para análise de números inteiros ----------
                 case STATE.NUMERO:
