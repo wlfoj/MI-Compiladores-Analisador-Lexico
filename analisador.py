@@ -291,6 +291,7 @@ def analisador_lexico(linhas):
                                                                                 TOKENS_TYPE.TOKEN_MAL_FORMADO,
                                                                                 None]):
                         estado = STATE.NUMERO
+                        lexema = lexema + char
                         print("Entrei em numero", lexema+char)
                     # Se for o um único dos +-/* e depois não vier um número
                     else:
