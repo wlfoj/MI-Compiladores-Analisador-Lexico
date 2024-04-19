@@ -68,7 +68,7 @@ def e_ide_valido(char) -> bool:## OOKK
 
 
 def e_delimitador(char) -> bool: ## OOKK
-    ''' Função que verifica se o caracter é um delimitador ou operador
+    ''' Função que verifica se o caracter é um delimitador ou operador ou espaço
     Return.
         True se for, False se não for 
         '-'
@@ -283,9 +283,9 @@ def analisador_lexico(linhas):
                                                                                 TOKENS_TYPE.OPERADOR_LOGICO, 
                                                                                 TOKENS_TYPE.OPERADOR_RELACIONAL, 
                                                                                 TOKENS_TYPE.DELIMITADOR,
+                                                                                TOKENS_TYPE.CADEIA_DE_CARACTERES,
                                                                                 TOKENS_TYPE.NUMERO_MAL_FORMADO,
                                                                                 TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO,
-                                                                                TOKENS_TYPE.CADEIA_DE_CARACTERES,
                                                                                 TOKENS_TYPE.CADEIA_MAL_FORMADA,
                                                                                 TOKENS_TYPE.TOKEN_MAL_FORMADO,
                                                                                 None]):
