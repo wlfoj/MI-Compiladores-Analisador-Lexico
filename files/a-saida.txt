@@ -1,0 +1,37 @@
+1 PRE algoritmo
+1 PRE principal
+1 DEL (
+1 DEL )
+1 DEL {
+2 PRE variaveis
+2 DEL {
+3 PRE real
+3 IDE f
+3 REL =
+3 DEL ;
+5 IDE texto
+5 IDE msg
+5 REL =
+9 IDE mensagem
+9 DEL )
+9 DEL ;
+10 PRE escreva
+10 DEL (
+10 DEL )
+10 DEL ;
+12 DEL }
+13 IDE a
+
+3 TMF 	
+4 TMF 	
+4 TMF @
+5 TMF 	
+9 CMF 	escreva("
+10 TMF 	
+10 CMF "menÃ‡agem"
+16 CoMF /* exa869 mi processadores de
+		linguagem de programacao
+}
+
+
+Analise lexica concluida com sucesso!!
