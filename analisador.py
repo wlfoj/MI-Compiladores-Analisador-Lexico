@@ -137,7 +137,7 @@ def obtem_todas_linhas(nome_arquivo_entrada) -> list:## OOKK
     Return.
         linhas               -> Todas as linhas presentes no arquivo de entrada
     '''
-    with open(nome_arquivo_entrada, "r") as a:
+    with open(nome_arquivo_entrada, "r", encoding='utf-8') as a:
         linhas = a.readlines()
     return linhas
 
@@ -431,8 +431,9 @@ def analisador_lexico(linhas):
         if lexema and estado != STATE.INICIO:
             if estado == STATE.COMENTARIO_LINHA:
                 estado = STATE.INICIO
-            elif estado == STATE.COMENTARIO_BLOCO and (linha_num != len(linhas)):
-                lexema = lexema + "\n"
+            elif estado == STATE.COMENTARIO_BLOCO :
+                if(linha_num != len(linhas)):
+                    lexema = lexema + "\n"
             # Se tenho algum lexema para pôr e é do tipo cac, significa que n fechei ela
             elif estado == STATE.CADEIA_DE_CARACTERES:
                 token_atual = TOKENS_TYPE.CADEIA_MAL_FORMADA
@@ -452,8 +453,8 @@ def analisador_lexico(linhas):
 
     # para tratar o comentário de bloco mal formado
     if lexema and estado==STATE.COMENTARIO_BLOCO:
-        print(lexema, linha_num)
         token_atual = TOKENS_TYPE.COMENTARIO_MAL_FORMADO
+        linha_num = linha_num - lexema.count('\n')
         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
     
     return tokens_bem_formados, tokens_mal_formados

@@ -37,6 +37,10 @@
 4 TMF @
 5 CMF "teste
 9 CMF "mensagem);
-10 CMF "menÃ‡agem"
+10 CMF "menÇagem"
+14 CoMF /* exa869 mi processadores de
+linguagem de programacao
+}11
+asasa
 
 Analise lexica concluida com sucesso!!
