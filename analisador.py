@@ -68,7 +68,7 @@ with open("files/teste.txt", "r") as a:
 
 
 estado = STATE.INICIO
-tipo_ultimo_token = 0
+tipo_ultimo_token = None
 lexema = ''
 tokens = []
 erro = False
@@ -86,6 +86,7 @@ for linha in linhas:
     if estado != STATE.COMENTARIO_BLOCO:
         lexema = '' # não resetar se for um comentário
         erro = False
+        tipo_ultimo_token = None
 
     while i <= final_pos_linha:  
         char = linha[i]
@@ -181,6 +182,7 @@ for linha in linhas:
                                                                             TOKENS_TYPE.CADEIA_DE_CARACTERES,
                                                                             TOKENS_TYPE.CADEIA_MAL_FORMADA]):
                     estado = STATE.NUMERO
+                    print("Entrei numero")
                 # Se for o um único dos +-/* e depois não vier um número
                 else:
                     tokens.append(lexema)
