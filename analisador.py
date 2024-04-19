@@ -48,7 +48,7 @@ class STATE(Enum):
 
 
 ### ============================ BLOCO DE FUNÇÕES AUXILIARES PARA IDENTIFICAÇÃO E CONTROLE DE TOKENS ============================ ###
-def e_cadeia_valida(caracter) -> bool:
+def e_cadeia_valida(caracter) -> bool:## OOKK
     ''' Função que verifica se a cadeia de caracterres é válida. verifica se o caracter está dentro dos permitidos da tabela ASCII
     Return.
         True se for permitido, False se não for 
@@ -58,7 +58,7 @@ def e_cadeia_valida(caracter) -> bool:
     return (valor_inteiro >= 32 and valor_inteiro <=126) and (valor_inteiro != 34)
 
 
-def e_ide_valido(char) -> bool:
+def e_ide_valido(char) -> bool:## OOKK
     ''' Função que verifica se o identificador é válido. observa se o caracter é permitido para Identificadores
     Return.
         True se for permitido, False se não for 
@@ -67,7 +67,7 @@ def e_ide_valido(char) -> bool:
     return (char in alfabeto) or (char in digitos) or (char == '_')
 
 
-def e_delimitador(char) -> bool: 
+def e_delimitador(char) -> bool: ## OOKK
     ''' Função que verifica se o caracter é um delimitador ou operador
     Return.
         True se for, False se não for 
@@ -76,7 +76,7 @@ def e_delimitador(char) -> bool:
     return char in " +-*/><=!&|" or char in delimitadores
 
 
-def salva_lexema(lexema, linha, tipo, lista_TBF, lista_TMF):
+def salva_lexema(lexema, linha, tipo, lista_TBF, lista_TMF): ## OOKK
     ''' Função que adiciona os lexemas na lista de tokens mal formados ou de tokens normais
     Param.
         lexema      -> valor do lexema a ser salvo
@@ -101,7 +101,7 @@ def salva_lexema(lexema, linha, tipo, lista_TBF, lista_TMF):
 
 
 ### ============================ BLOCO DE FUNÇÕES PARA LEITURA E ESCRITA DE ARQUIVOS ============================ ###
-def escreve_saida(nome_arquivo_entrada, lista_TBF, lista_TMF, erro_no_processo):
+def escreve_saida(nome_arquivo_entrada, lista_TBF, lista_TMF, erro_no_processo):## OOKK
     ''' Função para escrever os tokens no arquivo de saída no formato esperado, bem como a mensagem de sucesso ou erro do processo
     Param.
         nome_arquivo_entrada -> Caminho completo relativo até o arquivo, incluindo seu nome.
@@ -129,7 +129,7 @@ def escreve_saida(nome_arquivo_entrada, lista_TBF, lista_TMF, erro_no_processo):
             f.write("Analise lexica concluida com sucesso!!")
 
 
-def obtem_todas_linhas(nome_arquivo_entrada) -> list:
+def obtem_todas_linhas(nome_arquivo_entrada) -> list:## OOKK
     ''' Função para obter todas as linhas do arquivo de entrada.
     Param.
         nome_arquivo_entrada -> Caminho completo relativo até o arquivo, incluindo seu nome.
@@ -142,7 +142,7 @@ def obtem_todas_linhas(nome_arquivo_entrada) -> list:
     return linhas
 
 
-def obter_nomes_arquivos_entrada() -> list:
+def obter_nomes_arquivos_entrada() -> list:## OOKK
     ''' Função que obtem uma lista com o nome de todos os arquivos que são validos como arquivos de entrada para o analisador lexico
     Return.
         lista_arquivos_entrada -> Caminho completo relativo até o arquivo, incluindo seu nome.
@@ -436,7 +436,7 @@ def analisador_lexico(linhas):
         if lexema and estado != STATE.INICIO:
             if estado == STATE.COMENTARIO_LINHA:
                 estado = STATE.INICIO
-            elif estado == STATE.COMENTARIO_BLOCO:
+            elif estado == STATE.COMENTARIO_BLOCO and (linha_num != len(linhas)):
                 lexema = lexema + "\n"
             # Se tenho algum lexema para pôr e é do tipo cac, significa que n fechei ela
             elif estado == STATE.CADEIA_DE_CARACTERES:
@@ -468,7 +468,7 @@ def analisador_lexico(linhas):
 ### ====================== EXECUÇÃO DO CÓDIGO ====================== ###
 if __name__ == '__main__':
     # Obtem a lista de arquivos que podem ser lidos
-    arquivos_entrada = obter_nomes_arquivos_entrada()
+    arquivos_entrada = obter_nomes_arquivos_entrada() #[asnasas.txt, asaoskoa.txt]
     # Começa um for em cada um deles
     for arquivo in arquivos_entrada:
         # Obtem as linhas

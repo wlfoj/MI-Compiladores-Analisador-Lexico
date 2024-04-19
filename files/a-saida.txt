@@ -21,6 +21,9 @@
 10 DEL ;
 12 DEL }
 13 IDE a
+16 ART /* exa869 mi processadores de
+		linguagem de programacao
+}11
 
 3 TMF 	
 4 TMF 	
@@ -29,9 +32,5 @@
 9 CMF 	escreva("
 10 TMF 	
 10 CMF "menÃ‡agem"
-16 CoMF /* exa869 mi processadores de
-		linguagem de programacao
-}11
-
 
 Analise lexica concluida com sucesso!!

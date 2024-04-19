@@ -131,9 +131,10 @@ for linha in linhas:
                 ## == PARA TOKENS MAL FORMADOS == ## OOOOKKKKK
                 else:
                     erro = True 
-                    lexema = lexema + char
-                    tokens.append(lexema) 
-                    tipo_ultimo_token = TOKENS_TYPE.TOKEN_MAL_FORMADO
+                    if char != '\t' and char != '\r': ## COMENTAR ISSO AQUI
+                        lexema = lexema + char
+                        tokens.append(lexema) 
+                        tipo_ultimo_token = TOKENS_TYPE.TOKEN_MAL_FORMADO
                 i=i+1# Passo a linha
 
 
@@ -327,7 +328,7 @@ for linha in linhas:
     if lexema and estado != STATE.INICIO:
         if estado == STATE.COMENTARIO_LINHA:
             estado = STATE.INICIO
-        elif estado == STATE.COMENTARIO_BLOCO:
+        elif estado == STATE.COMENTARIO_BLOCO and (linha_num != len(linhas)):
             lexema = lexema + "\n"
         else:
             tipo_ultimo_token = estado
