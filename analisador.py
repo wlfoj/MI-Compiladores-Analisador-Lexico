@@ -74,7 +74,7 @@ def e_delimitador(char) -> bool: ## OOKK
         True se for, False se não for 
         '-'
     '''
-    return char in " +-*/><=!&|" or char in delimitadores
+    return (char in [' ', '"','+', '-', '*', '/', '>', '<', '!', '&&', '||', '>=', '<=', '!=', '=', '==']) or (char in delimitadores)
 
 
 def salva_lexema(lexema, linha, tipo, lista_TBF, lista_TMF): ## OOKK
@@ -124,10 +124,10 @@ def escreve_saida(nome_arquivo_entrada, lista_TBF, lista_TMF, erro_no_processo):
             f.write(f"{token['linha']} {token['tipo'].value} {token['valor']}\n")
         f.write("\n") # só para separar melhor os comentários de erro e sucesso
         # Escreve a mensagem de sucesso ou de erro
-        if (erro_no_processo):
-            f.write("A analise lexica não pôde ser concluído, pois houver erro durante o processo")
-        else:
+        if (not erro_no_processo):
             f.write("Analise lexica concluida com sucesso!!")
+        #else:
+        #    f.write("Analise lexica concluida com sucesso!!")
 
 
 def obtem_todas_linhas(nome_arquivo_entrada) -> list:## OOKK
@@ -457,6 +457,7 @@ def analisador_lexico(linhas):
 
 ### ====================== EXECUÇÃO DO CÓDIGO ====================== ###
 if __name__ == '__main__':
+    erro = False
     # Obtem a lista de arquivos que podem ser lidos
     arquivos_entrada = obter_nomes_arquivos_entrada() #[asnasas.txt, asaoskoa.txt]
     # Começa um for em cada um deles
@@ -464,10 +465,8 @@ if __name__ == '__main__':
         # Obtem as linhas
         linhas = obtem_todas_linhas(arquivo)
         # Passa pela analise lexica
-        try:
-            TBF, TMF = analisador_lexico(linhas)
-            erro = False
-        except:
+        TBF, TMF = analisador_lexico(linhas)
+        if len(TMF)>0:
             erro = True
         # Escreve a saída após passar pelo analisador (Lembrar de escrever quando der erro também, então bota um try except no analisador)
         escreve_saida(arquivo, TBF, TMF, erro)

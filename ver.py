@@ -1,2 +1,3 @@
-texto = "asdsa"
-print(len(texto))
+lista = [ "&&"]
+
+print('&' in lista)

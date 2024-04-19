@@ -1,10 +1,7 @@
-1 ART -3
-2 ART -3
-3 ART --
-3 NRO 3
+1 NRO 47
+1 CAC "oioi"
+1 ART +
+1 NRO 44
 
-1 CMF "paçoca"
-2 TMF @
-3 TMF @
 
 Analise lexica concluida com sucesso!!
