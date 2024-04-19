@@ -68,6 +68,7 @@ with open("files/teste.txt", "r") as a:
 
 
 estado = STATE.INICIO
+tipo_ultimo_token = 0
 lexema = ''
 tokens = []
 erro = False
@@ -132,6 +133,7 @@ for linha in linhas:
                     erro = True 
                     lexema = lexema + char
                     tokens.append(lexema) 
+                    tipo_ultimo_token = TOKENS_TYPE.TOKEN_MAL_FORMADO
                 i=i+1# Passo a linha
 
 
@@ -147,6 +149,7 @@ for linha in linhas:
                 else: # Se for o fim
                     lexema = lexema + char
                     tokens.append(lexema)
+                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                 i=i+1# Passo a linha
 
@@ -161,18 +164,27 @@ for linha in linhas:
                     estado = STATE.COMENTARIO_BLOCO
                     i=i+1
                     continue
-                # Se for um lógico duplo
-                elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
+                # Se for um aritmético duplo
+                elif (lexema=="+" and char=="+") or (lexema=="-" and char=="-"):
                     lexema = lexema + char
                     tokens.append(lexema)
+                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                     i=i+1
-                # Se for o ! ou um lógico mal formado
+                ## Se for o caso de um número negativo
+                elif (lexema=='-' and char.isdigit()) and (tipo_ultimo_token in [TOKENS_TYPE.OPERADOR_ARITMETICO, 
+                                                                            TOKENS_TYPE.OPERADOR_LOGICO, 
+                                                                            TOKENS_TYPE.OPERADOR_RELACIONAL, 
+                                                                            TOKENS_TYPE.DELIMITADOR,
+                                                                            TOKENS_TYPE.NUMERO_MAL_FORMADO,
+                                                                            TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO,
+                                                                            TOKENS_TYPE.CADEIA_DE_CARACTERES,
+                                                                            TOKENS_TYPE.CADEIA_MAL_FORMADA]):
+                    estado = STATE.NUMERO
+                # Se for o um único dos +-/* e depois não vier um número
                 else:
-                    # Se for mal formado
-                    if lexema == "&" or lexema == "|":
-                        erro = True
                     tokens.append(lexema)
+                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
         
 
@@ -198,6 +210,7 @@ for linha in linhas:
                 elif (lexema=="|" and char=="|") or (lexema=="&" and char=="&"):
                     lexema = lexema + char
                     tokens.append(lexema)
+                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                     i=i+1
                 # Se for o ! ou um lógico mal formado
@@ -205,6 +218,10 @@ for linha in linhas:
                     # Se for mal formado
                     if lexema == "&" or lexema == "|":
                         erro = True
+                        tipo_ultimo_token = TOKENS_TYPE.TOKEN_MAL_FORMADO
+                    else:
+                        tipo_ultimo_token = estado
+
                     tokens.append(lexema)
                     estado = STATE.INICIO # Volta para posição inicial
 
@@ -257,19 +274,16 @@ for linha in linhas:
 
             # ---------- Estado para analise de operador relacional ---------- #  OOOKKKKK
             case STATE.OPERADOR_RELACIONAL:
-                # Se for um operador Relacional, transfere a responsabilidade
-                if lexema == "!" and char == "=":
+                # Se for um operador Relacional duplo
+                if (lexema == "!" and char == "=") or (lexema=="=" and char=="=") or (lexema=="<" and char=="=") or (lexema==">" and char=="="):
                     lexema = lexema + char
                     tokens.append(lexema)
-                    estado = STATE.INICIO
-                # Se for um lógico duplo
-                elif (lexema=="=" and char=="=") or (lexema=="<" and char=="=") or (lexema==">" and char=="="):
-                    lexema = lexema + char
-                    tokens.append(lexema)
+                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
-                # Se for o ! ou um lógico mal formado
+                # Se for um relacional simples <>=
                 else:
                     tokens.append(lexema)
+                    tipo_ultimo_token = estado
                     estado = STATE.INICIO # Volta para posição inicial
                     continue
                 i=i+1
@@ -288,6 +302,7 @@ for linha in linhas:
                         estado = STATE.RESERVADO
                     else:
                         tokens.append(lexema)
+                        tipo_ultimo_token = estado
                         estado = STATE.INICIO # Vai para o inicio
                     continue
                 i=i+1# Passo a linha
@@ -295,6 +310,7 @@ for linha in linhas:
 
             case STATE.RESERVADO:
                 tokens.append(lexema)
+                tipo_ultimo_token = estado
                 estado = STATE.INICIO # Vai para o inicio      
 
 
@@ -302,6 +318,7 @@ for linha in linhas:
             case STATE.DELIMITADOR:
                 # só serve para salvar na estrutura de palavra reservada
                 tokens.append(lexema)
+                tipo_ultimo_token = estado
                 estado = STATE.INICIO
                 i=i+1# Passo a linha
 
@@ -313,6 +330,7 @@ for linha in linhas:
         elif estado == STATE.COMENTARIO_BLOCO:
             lexema = lexema + "\n"
         else:
+            tipo_ultimo_token = estado
             tokens.append(lexema)
             # Lembrar de ver a lógica para o caso de 
             estado = STATE.INICIO
