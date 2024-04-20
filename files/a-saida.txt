@@ -1,7 +1,7 @@
-1 NRO 47
-1 CAC "oioi"
-1 ART +
-1 NRO 44
+1 NRO -3
+2 ART --
+2 NRO 3
 
+1 TMF @
+2 TMF @
 
-Analise lexica concluida com sucesso!!
