@@ -177,6 +177,7 @@ def analisador_lexico(linhas):
     tokens_bem_formados = []
     tokens_mal_formados = []
     linha_num = 0 # Número da linha analisada
+    flag_erro_decimal = False
 
     ### ===== Inicio do processo de analise lexica ===== ###
     for linha in linhas:
@@ -185,6 +186,7 @@ def analisador_lexico(linhas):
         linha_num = linha_num + 1
         i = 0 # iterador da linha para fazer o fatiamento da CADEIA_DE_CARACTERES
         final_pos_linha = len(linha)-1
+        flag_erro_decimal = False
 
         # Não atualizo as infos, pois posso estar vindo de um comentário de bloco mal formado
         if estado != STATE.COMENTARIO_BLOCO:
@@ -351,24 +353,24 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para análise de números decimais ----------
                 case STATE.NUMERO_DECIMAL:
-                    if char.isdigit():  # Continua lendo dígitos após o ponto decimal
-                        lexema += char
-                        #token_atual = TOKENS_TYPE.NUMERO  # Mantém como número até confirmar que é um formato válido
-                        #estado = STATE.NUMERO_DECIMAL
-                    elif lexema[1] == '.' and ( not char.isdigit()):# 1.@
-                            lexema += char
-                            token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
-                            estado = STATE.NUMERO
-                    elif e_delimitador(char) and char != '.': 
+                    # Se sou erro e achei um delimitador, finalizo o lexema com erro
+                    if flag_erro_decimal and e_delimitador(char):
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
-                    else:  # DECIMAL COM ERRO
-                        lexema += char
+                    # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
+                    elif not flag_erro_decimal and e_delimitador(char):
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                        estado = STATE.INICIO
+                        continue
+                    # Se for um ponto ou for algo que n seja digito, vira erro
+                    elif char == '.' or (not char.isdigit()):
+                        flag_erro_decimal = True
                         token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
-                        #estado = STATE.INICIO
-                        continue  # Não avança o índice, pois o caractere atual pode ser o início de um novo token
-                    i += 1  # Avança para o próximo caractere
+                        lexema = lexema + char
+                    else:
+                        lexema = lexema + char
+                    i=i+1
 
                 # ---------- Estado para analise de operador relacional ---------- #  OOOKKKKK
                 case STATE.OPERADOR_RELACIONAL:
