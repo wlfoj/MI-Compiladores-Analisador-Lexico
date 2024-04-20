@@ -186,7 +186,6 @@ def analisador_lexico(linhas):
         linha_num = linha_num + 1
         i = 0 # iterador da linha para fazer o fatiamento da CADEIA_DE_CARACTERES
         final_pos_linha = len(linha)-1
-        flag_erro_decimal = False
 
         # Não atualizo as infos, pois posso estar vindo de um comentário de bloco mal formado
         if estado != STATE.COMENTARIO_BLOCO:
@@ -199,6 +198,7 @@ def analisador_lexico(linhas):
             match estado:
                 # ---------- Estado inicial da aplicação ---------- #
                 case STATE.INICIO:
+                    flag_erro_decimal = False
                     lexema = '' # Reseta o lexema
                     #token_atual = None
                     ## == Ignora espaços == ## OOOOKKKK
@@ -354,12 +354,13 @@ def analisador_lexico(linhas):
                 # ---------- Estado para análise de números decimais ----------
                 case STATE.NUMERO_DECIMAL:
                     # Se sou erro e achei um delimitador, finalizo o lexema com erro
-                    if flag_erro_decimal and e_delimitador(char):
+                    if flag_erro_decimal and (e_delimitador(char)):
+                        print("entrei para", lexema)
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
                     # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
-                    elif not flag_erro_decimal and e_delimitador(char):
+                    elif not flag_erro_decimal and (e_delimitador(char) and char !='.'):
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
