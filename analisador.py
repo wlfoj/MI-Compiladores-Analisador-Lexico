@@ -340,8 +340,12 @@ def analisador_lexico(linhas):
                     if char.isdigit():  # Continua lendo dígitos
                         lexema += char
                     elif char == '.':
-                        lexema += char
-                        estado = STATE.NUMERO_DECIMAL
+                        if i + 1 < len(linha) and linha[i+1].isdigit():
+                            lexema += char  # Adiciona o ponto decimal ao lexema
+                            estado = STATE.NUMERO_DECIMAL  # Muda para o estado de número decimal
+                        else:
+                            lexema += char
+                            token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                     elif e_delimitador(char):  # Finaliza o token de número e volta ao estado inicial
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
