@@ -354,8 +354,14 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para análise de números decimais ----------
                 case STATE.NUMERO_DECIMAL:
+
+                    if char.isdigit():
+                        lexema = lexema + char
                     # Se sou erro e achei um delimitador, finalizo o lexema com erro
-                    if flag_erro_decimal and (e_delimitador(char)):
+                    # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
+                    if not flag_erro_decimal and (e_delimitador(char) and char !='.'):
+                        if lexema[-1] == '.':
+                            token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
@@ -365,9 +371,7 @@ def analisador_lexico(linhas):
                         token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         lexema = lexema + char
                     # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
-                    elif not flag_erro_decimal and (e_delimitador(char) and char !='.'):
-                        if lexema[-1] == '.':
-                            token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
+                    elif flag_erro_decimal and (e_delimitador(char)):
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
@@ -438,6 +442,11 @@ def analisador_lexico(linhas):
             elif estado == STATE.NUMERO_DECIMAL:
                 if lexema[-1] == '.':
                     token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
+                ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                estado = STATE.INICIO
+            elif estado == STATE.IDENTIFICADOR:
+                if lexema in reservadas:
+                    token_atual = TOKENS_TYPE.PALAVRA_RESERVADA
                 ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO
             else:

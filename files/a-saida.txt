@@ -1,3 +1,9 @@
+1 IDE asb
+1 ART -
+1 NRO 44
+2 NRO -2
 
-2 NMF 2.-2
+1 NMF 1.
+2 NMF 2.
+3 IMF a&&b
 
