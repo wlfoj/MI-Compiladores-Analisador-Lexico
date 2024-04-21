@@ -129,7 +129,6 @@ def escreve_saida(nome_arquivo_entrada, lista_TBF, lista_TMF, erro_no_processo):
         #else:
         #    f.write("Analise lexica concluida com sucesso!!")
 
-
 def obtem_todas_linhas(nome_arquivo_entrada) -> list:## OOKK
     ''' Função para obter todas as linhas do arquivo de entrada.
     Param.
@@ -274,7 +273,6 @@ def analisador_lexico(linhas):
                     i=i+1
 
 
-
                 # ---------- Estado para analise de operador logico ---------- #  OOOKKKKK
                 case STATE.OPERADOR_LOGICO:
                     # Se for um operador Relacional, transfere a responsabilidade
@@ -299,9 +297,7 @@ def analisador_lexico(linhas):
                 # ---------- Estado para analise de operador ARITMETICO ---------- #  
                 case STATE.OPERADOR_ARITMETICO:
                     # Se for um operador Relacional, transfere a responsabilidade
-                    if char == ' ':
-                        pass
-                    elif lexema == "/" and char == "/":
+                    if lexema == "/" and char == "/":
                         estado = STATE.COMENTARIO_LINHA
                         continue
                     elif lexema == "/" and char == "*":

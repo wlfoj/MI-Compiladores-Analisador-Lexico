@@ -1,15 +1,4 @@
-2 NRO 99.99
-2 LOG &&
-2 NRO 19
-3 LOG &&
-3 NRO 13
-4 REL =
-4 NRO -9
-5 REL =
-5 NRO -9
-6 REL =
-6 NRO -9
+1 ART ++
 
-1 IMF 99.45&17
-3 NMF 77.a
 
+Analise lexica concluida com sucesso!!
