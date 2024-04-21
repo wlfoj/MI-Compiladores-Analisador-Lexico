@@ -337,7 +337,19 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para análise de números inteiros ----------
                 case STATE.NUMERO:
-                    if char.isdigit():  # Continua lendo dígitos
+                    ## Caso especial em que preciso olhar o proximo caracter
+                    if char in '&|' and i < final_pos_linha:
+                        # Finalizo
+                        if char == '&' and linha[i+1] == '&':
+                            ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                            estado = STATE.INICIO # Volta para posição inicial
+                            continue
+                        # Finalizo
+                        elif char == '|' and linha[i+1] == '|':
+                            ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                            estado = STATE.INICIO # Volta para posição inicial
+                            continue
+                    elif char.isdigit():  # Continua lendo dígitos
                         lexema += char
                     elif char == '.' and (not flag_erro_num):
                         lexema += char
@@ -354,7 +366,22 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para análise de números decimais ----------
                 case STATE.NUMERO_DECIMAL:
-                    if char.isdigit():
+                    ## Caso especial em que preciso olhar o proximo caracter
+                    if char in '&|' and i < final_pos_linha:
+                        # Finalizo
+                        if char == '&' and linha[i+1] == '&':
+                            ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                            estado = STATE.INICIO # Volta para posição inicial
+                            continue
+                        # Finalizo
+                        elif char == '|' and linha[i+1] == '|':
+                            ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                            estado = STATE.INICIO # Volta para posição inicial
+                            continue
+                        else:
+                            token_atual = TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO
+                            lexema = lexema + char
+                    elif char.isdigit():
                         lexema = lexema + char
                     # Se sou erro e achei um delimitador, finalizo o lexema com erro
                     #### FORÇA A INTERROMPER SE ACHAR ESSE ESPAÇO (NÃO APAGA AINDA)
@@ -398,8 +425,23 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para analise de IDENTIFICADORES ---------- #  OOOOKKKKK
                 case STATE.IDENTIFICADOR:
+                    ## Caso especial em que preciso olhar o proximo caracter
+                    if char in '&|' and i < final_pos_linha:
+                        # Finalizo
+                        if char == '&' and linha[i+1] == '&':
+                            ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                            estado = STATE.INICIO # Volta para posição inicial
+                            continue
+                        # Finalizo
+                        elif char == '|' and linha[i+1] == '|':
+                            ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                            estado = STATE.INICIO # Volta para posição inicial
+                            continue
+                        else:
+                            token_atual = TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO
+                            lexema = lexema + char
                     # Se for letra, num ou underline e não for o final da linha
-                    if (not e_delimitador(char)):
+                    elif (not e_delimitador(char)):
                         # Se tiver algum caracter fora dos permitidos, sinalizo o erro
                         if not e_ide_valido(char):
                             token_atual = TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO
