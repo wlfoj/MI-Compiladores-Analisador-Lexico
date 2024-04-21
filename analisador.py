@@ -154,7 +154,7 @@ def obter_nomes_arquivos_entrada() -> list:## OOKK
     PASTA = 'files/'
     for arquivo in os.listdir(PASTA):
         # Evita processar arquivos que já contêm "-saida" no nome e os que não o ".txt" no final
-        if arquivo.endswith('.txt') and '-saida.txt' not in arquivo:
+        if arquivo.endswith('.txt') and (not arquivo.endswith('-saida.txt')):
             lista_arquivos_entrada.append(PASTA + arquivo)
     return lista_arquivos_entrada
     
@@ -339,7 +339,7 @@ def analisador_lexico(linhas):
                 case STATE.NUMERO:
                     if char.isdigit():  # Continua lendo dígitos
                         lexema += char
-                    elif char == '.':
+                    elif char == '.' and (not flag_erro_decimal):
                         lexema += char
                         estado = STATE.NUMERO_DECIMAL
                     elif e_delimitador(char):  # Finaliza o token de número e volta ao estado inicial
@@ -347,6 +347,7 @@ def analisador_lexico(linhas):
                         estado = STATE.INICIO
                         continue  # Não avança o índice, pois o caractere atual pode ser o início de um novo token
                     else:
+                        flag_erro_decimal = True
                         lexema += char
                         token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                     i += 1  # Avança para o próximo caractere
@@ -355,12 +356,6 @@ def analisador_lexico(linhas):
                 case STATE.NUMERO_DECIMAL:
                     # Se sou erro e achei um delimitador, finalizo o lexema com erro
                     if flag_erro_decimal and (e_delimitador(char)):
-                        print("entrei para", lexema)
-                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
-                        estado = STATE.INICIO
-                        continue
-                    # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
-                    elif not flag_erro_decimal and (e_delimitador(char) and char !='.'):
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
@@ -369,6 +364,13 @@ def analisador_lexico(linhas):
                         flag_erro_decimal = True
                         token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         lexema = lexema + char
+                    # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
+                    elif not flag_erro_decimal and (e_delimitador(char) and char !='.'):
+                        if lexema[-1] == '.':
+                            token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                        estado = STATE.INICIO
+                        continue
                     else:
                         lexema = lexema + char
                     i=i+1
@@ -431,6 +433,11 @@ def analisador_lexico(linhas):
             # Se tenho algum lexema para pôr e é do tipo cac, significa que n fechei ela
             elif estado == STATE.CADEIA_DE_CARACTERES:
                 token_atual = TOKENS_TYPE.CADEIA_MAL_FORMADA
+                ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                estado = STATE.INICIO
+            elif estado == STATE.NUMERO_DECIMAL:
+                if lexema[-1] == '.':
+                    token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                 ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO
             else:
