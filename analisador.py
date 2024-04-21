@@ -299,21 +299,21 @@ def analisador_lexico(linhas):
                 # ---------- Estado para analise de operador ARITMETICO ---------- #  
                 case STATE.OPERADOR_ARITMETICO:
                     # Se for um operador Relacional, transfere a responsabilidade
-                    if lexema == "/" and char == "/":
+                    if char == ' ':
+                        pass
+                    elif lexema == "/" and char == "/":
                         estado = STATE.COMENTARIO_LINHA
                         continue
                     elif lexema == "/" and char == "*":
                         lexema = lexema + char # Eestou salvando pq posso precisar usar para comentario mal formado
                         estado = STATE.COMENTARIO_BLOCO
                         # token_atual = TOKENS_TYPE.
-                        i=i+1
                         continue
                     # Se for um aritmético duplo
                     elif (lexema=="+" and char=="+") or (lexema=="-" and char=="-"):
                         lexema = lexema + char
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO # Volta para posição inicial
-                        i=i+1
                     ## Se for o caso de um número negativo
                     elif (lexema=='-' and char.isdigit()) and (ultimo_token['tipo'] in [TOKENS_TYPE.OPERADOR_ARITMETICO, 
                                                                                 TOKENS_TYPE.OPERADOR_LOGICO, 
@@ -328,11 +328,12 @@ def analisador_lexico(linhas):
                         estado = STATE.NUMERO
                         token_atual = TOKENS_TYPE.NUMERO
                         lexema = lexema + char
-                        i = i+1
                     # Se for o um único dos +-/* e depois não vier um número
                     else:
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO # Volta para posição inicial
+                        continue
+                    i = i+1
 
 
                 # ---------- Estado para análise de números inteiros ----------
