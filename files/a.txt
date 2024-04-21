@@ -1,3 +1,4 @@
-1. asb-44
-2.-2
-a&&b
+as
+algoritmo 44
+algoritmo&&
+algoritmo &&

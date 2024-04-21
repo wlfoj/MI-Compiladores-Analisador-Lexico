@@ -354,7 +354,6 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para análise de números decimais ----------
                 case STATE.NUMERO_DECIMAL:
-
                     if char.isdigit():
                         lexema = lexema + char
                     # Se sou erro e achei um delimitador, finalizo o lexema com erro
@@ -439,11 +438,13 @@ def analisador_lexico(linhas):
                 token_atual = TOKENS_TYPE.CADEIA_MAL_FORMADA
                 ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO
+            ##################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             elif estado == STATE.NUMERO_DECIMAL:
                 if lexema[-1] == '.':
                     token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                 ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO
+
             elif estado == STATE.IDENTIFICADOR:
                 if lexema in reservadas:
                     token_atual = TOKENS_TYPE.PALAVRA_RESERVADA
