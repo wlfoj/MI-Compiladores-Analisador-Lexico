@@ -177,7 +177,7 @@ def analisador_lexico(linhas):
     tokens_bem_formados = []
     tokens_mal_formados = []
     linha_num = 0 # Número da linha analisada
-    flag_erro_decimal = False
+    flag_erro_num = False
 
     ### ===== Inicio do processo de analise lexica ===== ###
     for linha in linhas:
@@ -198,7 +198,7 @@ def analisador_lexico(linhas):
             match estado:
                 # ---------- Estado inicial da aplicação ---------- #
                 case STATE.INICIO:
-                    flag_erro_decimal = False
+                    flag_erro_num = False
                     lexema = '' # Reseta o lexema
                     #token_atual = None
                     ## == Ignora espaços == ## OOOOKKKK
@@ -339,7 +339,7 @@ def analisador_lexico(linhas):
                 case STATE.NUMERO:
                     if char.isdigit():  # Continua lendo dígitos
                         lexema += char
-                    elif char == '.' and (not flag_erro_decimal):
+                    elif char == '.' and (not flag_erro_num):
                         lexema += char
                         estado = STATE.NUMERO_DECIMAL
                     elif e_delimitador(char):  # Finaliza o token de número e volta ao estado inicial
@@ -347,7 +347,7 @@ def analisador_lexico(linhas):
                         estado = STATE.INICIO
                         continue  # Não avança o índice, pois o caractere atual pode ser o início de um novo token
                     else:
-                        flag_erro_decimal = True
+                        flag_erro_num = True
                         lexema += char
                         token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                     i += 1  # Avança para o próximo caractere
@@ -357,28 +357,27 @@ def analisador_lexico(linhas):
                     if char.isdigit():
                         lexema = lexema + char
                     # Se sou erro e achei um delimitador, finalizo o lexema com erro
-                    #### FORÇA A INTERROMPER SE ACHAR ESSE ESPAÇO
-                    elif char == ' ':
+                    #### FORÇA A INTERROMPER SE ACHAR ESSE ESPAÇO (NÃO APAGA AINDA)
+                    elif char == ' ':# ??????????????? TIRAR ESSA MERDA SE N FOR
                         if lexema[-1] == '.':
                             token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
-                    elif  lexema[-1] != '.' and (not flag_erro_decimal) and (e_delimitador(char)) and (char !='.'):
+                    elif  lexema[-1] != '.' and (not flag_erro_num) and (e_delimitador(char)) and (char !='.'):
                         if lexema[-1] == '.':
                             token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
                     # Venho do erro e acho um delimitador
-                    elif flag_erro_decimal and (e_delimitador(char)):
-                        print("entrei em ", lexema)
+                    elif flag_erro_num and (e_delimitador(char)):
                         token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
                     else:
-                        flag_erro_decimal = True
+                        flag_erro_num = True
                         token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         lexema = lexema + char
                     i=i+1
@@ -430,15 +429,16 @@ def analisador_lexico(linhas):
                     i=i+1# Passo a linha
         
 
-        # Se o lexema que estiver aqui for de algum estado incompleto
-        ## PENSAR QUANDO TIVER O COMENTÁRIO
+        # Se o lexema não tiver sido salvo ainda
         if lexema and estado != STATE.INICIO:
+            ##
             if estado == STATE.COMENTARIO_LINHA:
                 estado = STATE.INICIO
+            ## Adiciono uma quebra de linha, se não for a última linha do arquivo, para que fique igual ao arquivo de entrada
             elif estado == STATE.COMENTARIO_BLOCO :
                 if(linha_num != len(linhas)):
                     lexema = lexema + "\n"
-            # Se tenho algum lexema para pôr e é do tipo cac, significa que n fechei ela
+            ## Se tenho algum lexema para pôr e é do tipo cac, significa que n fechei ela
             elif estado == STATE.CADEIA_DE_CARACTERES:
                 token_atual = TOKENS_TYPE.CADEIA_MAL_FORMADA
                 ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
@@ -449,14 +449,14 @@ def analisador_lexico(linhas):
                     token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                 ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO
-
+            #########
             elif estado == STATE.IDENTIFICADOR:
                 if lexema in reservadas:
                     token_atual = TOKENS_TYPE.PALAVRA_RESERVADA
                 ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                 estado = STATE.INICIO
             else:
-                ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI 
+                ### (NÃO APAGA AINDA) LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI ### LEMBRE-SE DE OLHAR ISSO AQUI 
                 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 #??????????????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?????????????????????????
                 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -484,14 +484,15 @@ def analisador_lexico(linhas):
 if __name__ == '__main__':
     erro = False
     # Obtem a lista de arquivos que podem ser lidos
-    arquivos_entrada = obter_nomes_arquivos_entrada() #[asnasas.txt, asaoskoa.txt]
+    arquivos_entrada = obter_nomes_arquivos_entrada()
     # Começa um for em cada um deles
     for arquivo in arquivos_entrada:
         # Obtem as linhas
         linhas = obtem_todas_linhas(arquivo)
         # Passa pela analise lexica
         TBF, TMF = analisador_lexico(linhas)
+        # Se a lista de tokens mal formados tiver algum elemento, aviso para a função não escrever a mensagem de sucesso no arquivo de saida
         if len(TMF)>0:
             erro = True
-        # Escreve a saída após passar pelo analisador (Lembrar de escrever quando der erro também, então bota um try except no analisador)
+        # Escreve a saída após passar pelo analisador
         escreve_saida(arquivo, TBF, TMF, erro)
