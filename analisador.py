@@ -357,24 +357,29 @@ def analisador_lexico(linhas):
                     if char.isdigit():
                         lexema = lexema + char
                     # Se sou erro e achei um delimitador, finalizo o lexema com erro
-                    # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
-                    if not flag_erro_decimal and (e_delimitador(char) and char !='.'):
+                    #### FORÇA A INTERROMPER SE ACHAR ESSE ESPAÇO
+                    elif char == ' ':
                         if lexema[-1] == '.':
                             token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
-                    # Se for um ponto ou for algo que n seja digito, vira erro
-                    elif char == '.' or (not char.isdigit()):
-                        flag_erro_decimal = True
-                        token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
-                        lexema = lexema + char
-                    # Se eu não venho de erro, e acho um  delimitador, finalizo o lexema sem erro
+                    elif  lexema[-1] != '.' and (not flag_erro_decimal) and (e_delimitador(char)) and (char !='.'):
+                        if lexema[-1] == '.':
+                            token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
+                        ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
+                        estado = STATE.INICIO
+                        continue
+                    # Venho do erro e acho um delimitador
                     elif flag_erro_decimal and (e_delimitador(char)):
+                        print("entrei em ", lexema)
+                        token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                         estado = STATE.INICIO
                         continue
                     else:
+                        flag_erro_decimal = True
+                        token_atual = TOKENS_TYPE.NUMERO_MAL_FORMADO
                         lexema = lexema + char
                     i=i+1
 
