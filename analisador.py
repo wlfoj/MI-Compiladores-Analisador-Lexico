@@ -430,33 +430,38 @@ def analisador_lexico(linhas):
 
                 # ---------- Estado para analise de IDENTIFICADORES ---------- #
                 case STATE.IDENTIFICADOR:
-                    ## Caso especial em que preciso olhar o proximo caracter
+                    ## Caso especial em que preciso olhar o próximo caracter
+                    # Tratamos de casos especiais onde precisamos olhar o próximo caractere.
                     if char in '&|' and i < final_pos_linha:
-                        # Finalizo
+                        # Se o caractere atual é '&' ou '|', e ainda não chegamos ao final da linha:
+                        # Finalizo se for '&&'
                         if char == '&' and linha[i+1] == '&':
+                            # Se for '&&', finalizamos o lexema atual e voltamos para o estado inicial.
                             ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                             estado = STATE.INICIO # Volta para posição inicial
                             continue
-                        # Finalizo
+                        # Finalizo se for '||'
                         elif char == '|' and linha[i+1] == '|':
                             ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                             estado = STATE.INICIO # Volta para posição inicial
                             continue
                         else:
+                            # Se não for '&&' ou '||', marcamos o token atual como um identificador mal formado e adicionamos o caractere ao lexema.
                             token_atual = TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO
                             lexema = lexema + char
-                    # Se for letra, num ou underline e não for o final da linha
+                    # Se for letra, número ou underline e não for o final da linha
                     elif (not e_delimitador(char)):
-                        # Se tiver algum caracter fora dos permitidos, sinalizo o erro
+                        # Se o caractere atual não for um delimitador e não for permitido em identificadores, marcamos como identificador mal formado.
                         if not e_ide_valido(char):
                             token_atual = TOKENS_TYPE.IDENTIFICADOR_MAL_FORMADO
                         lexema = lexema + char
                     else: # Se for um delimitador
-                        # Se for palavra reservada
+                       # Se o lexema for uma palavra reservada, mudamos o estado para PALAVRA_RESERVADA.
                         if lexema in reservadas:
                             estado = STATE.PALAVRA_RESERVADA
                             token_atual = TOKENS_TYPE.PALAVRA_RESERVADA
                         else:
+                             # Caso contrário, finalizamos o lexema atual e voltamos para o estado inicial.
                             ultimo_token = salva_lexema(lexema, linha_num, token_atual, tokens_bem_formados, tokens_mal_formados)
                             estado = STATE.INICIO # Vai para o inicio
                         continue
