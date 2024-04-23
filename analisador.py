@@ -262,11 +262,12 @@ def analisador_lexico(linhas):
                         estado = STATE.INICIO # Volta para posição inicial
                     i=i+1# Passo a linha
             
-
+                # Este é o estado para comentários em bloco.
                 case STATE.COMENTARIO_LINHA:
                     i=i+1
                 case STATE.COMENTARIO_BLOCO:
                     lexema = lexema + char 
+                    # Se os dois últimos caracteres do lexema formarem '*/', indica o fim do comentário em bloco.
                     if (lexema[-2:] == "*/"):
                         estado = STATE.INICIO # Ignora tudo oq fez até aqui
                     i=i+1
