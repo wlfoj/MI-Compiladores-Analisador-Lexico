@@ -1,4 +1,0 @@
-ola=123+47;
-
-oi = "1qs" + aqui.corre(4)
-
